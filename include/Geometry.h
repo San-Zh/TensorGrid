@@ -86,13 +86,20 @@ class Geometry {
         }
     }
 
-    _INLINE_ const DataType volume() noexcept
-    {
-        size_t _volume = 1;
-        for (size_t i = 0; i < NumAxes; i++) {
-            _volume *= _data[i];
-        }
-        return _volume;
+    _INLINE_ DataType volume() noexcept {
+      size_t _volume = 1;
+      for (size_t i = 0; i < NumAxes; i++) {
+        _volume *= _data[i];
+      }
+      return _volume;
+    }
+
+    _INLINE_ const DataType volume() const noexcept {
+      size_t _volume = 1;
+      for (size_t i = 0; i < NumAxes; i++) {
+        _volume *= _data[i];
+      }
+      return _volume;
     }
 
   private:
