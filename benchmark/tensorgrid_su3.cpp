@@ -90,7 +90,7 @@ int main(int argc, char **argv)
     ComplexAry_MatrixVector(CB, CMat, CA, GRID_VOLUME());
     // ComplexAry_MatrixVector02(CB, CMat, CA, GRID_VOLUME());
     // TensorGrid_CMatrixVector(TGdes, TGmat, TGsrc, GRID_VOLUME());
-    TensorGrid_CMatrixVector(TGB, TGMAT, TGA, GRID_VOLUME());
+    // TensorGrid_CMatrixVector(TGB, TGMAT, TGA, GRID_VOLUME());
     double timeCMV0 = watcher.use();
 
     // watcher.reset();

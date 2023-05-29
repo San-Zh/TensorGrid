@@ -17,12 +17,12 @@ PREC="-DPRECISION=SINGLE"
 SIMDFLAGS="-march=native -funroll-loops" # -Rpass-missed=loop-vectorize
 
 # CXXFLAG+="-c -g -Wa,-adlhn " # 汇编+源码
-CXXFLAG+="-O0 ${SIMDFLAGS}"
+CXXFLAG+="-O3 ${SIMDFLAGS}"
 CXX=g++
 # CXX=clang++
 
-CFILE="tensorgrid_su3.cpp"
-# CFILE="tensorgrid_R3.cpp"
+# CFILE="tensorgrid_su3.cpp"
+CFILE="tensorgrid_R3.cpp"
 
 echo "${CXX} ${CXXFLAG} ${TENSOR} ${PREC}  ${CFILE}"
 

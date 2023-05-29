@@ -29,6 +29,8 @@ typedef DataType *RMatrixPtr[MAX_ROW][MAX_COL];
 typedef DataType *RVectorPtrCol[MAX_COL];
 typedef DataType *RVectorPtrRow[MAX_ROW];
 
+typedef DataType *DataPointer;
+
 #ifndef SIZE
 #ifndef LT
 #define LT 8
