@@ -1,38 +1,16 @@
-#include <iostream>
+
+#include <omp.h>
+#include <complex>
 #include <cstdlib>
 #include <cstring>
-#include <complex>
+#include <iostream>
+
 #include "tensorgrid_su3.h"
-#include "transfer.h"
 #include "timer.h"
-#include <omp.h>
-
-#define LT 1024
-#define LX 1
-#define LY 2
-#define LZ 2
-
-// #define GRID_VOLUME (LT * LX * LY * LZ)
-constexpr size_t GRID_VOLUME()
-{
-#ifndef SIZE
-    return (LT * LX * LY * LZ);
-#else
-    return SIZE;
-#endif
-}
-
-void random(DataType *src, size_t size)
-{
-    for (size_t i = 0; i < size; i++) {
-        src[i] = static_cast<DataType>(random()) / RAND_MAX;
-        // src[i] = static_cast<DataType>(i);
-    }
-}
+#include "transfer.h"
 
 int main(int argc, char **argv)
 {
-
     timer watcher;
     watcher.reset();
 
@@ -48,10 +26,10 @@ int main(int argc, char **argv)
     memset(des, 0, 2 * MAX_ROW * GRID_VOLUME() * sizeof(DataType));
     random(Y, 2 * MAX_COL * GRID_VOLUME());
     /// Complex Array
-    ComplexPtr CA = (ComplexPtr) (src);
-    ComplexPtr CY = (ComplexPtr) (Y);
-    ComplexPtr CB = (ComplexPtr) (des);
-    ComplexPtr CMat = (ComplexPtr) (mat);
+    ComplexPtr CA = (ComplexPtr)(src);
+    ComplexPtr CY = (ComplexPtr)(Y);
+    ComplexPtr CB = (ComplexPtr)(des);
+    ComplexPtr CMat = (ComplexPtr)(mat);
 
     ////// Tensor Grid //////
     DataType *TGmat = new DataType[2 * MAX_ROW * MAX_COL * GRID_VOLUME()];
@@ -73,53 +51,63 @@ int main(int argc, char **argv)
 #endif
     /// Tensor Grid pointer
     CVectorPtrRow TGA;
-    for (size_t row = 0; row < MAX_ROW; row++) {
-        TGA[row][0] = TGsrc + (2 * row) * GRID_VOLUME();
-        TGA[row][1] = TGsrc + (2 * row + 1) * GRID_VOLUME();
+    for (size_t col = 0; col < MAX_COL; col++) {
+        TGA[col][0] = TGsrc + (2 * col) * GRID_VOLUME();
+        TGA[col][1] = TGsrc + (2 * col + 1) * GRID_VOLUME();
     }
     CVectorPtrRow TGB;
-    for (size_t col = 0; col < MAX_COL; col++) {
-
-        TGB[col][0] = TGdes + (2 * col) * GRID_VOLUME();
-        TGB[col][1] = TGdes + (2 * col + 1) * GRID_VOLUME();
+    for (size_t row = 0; row < MAX_ROW; row++) {
+        TGB[row][0] = TGdes + (2 * row) * GRID_VOLUME();
+        TGB[row][1] = TGdes + (2 * row + 1) * GRID_VOLUME();
     }
     CMatrixPtr TGMAT;
     for (size_t row = 0; row < MAX_ROW; row++) {
         for (size_t col = 0; col < MAX_COL; col++) {
-            TGMAT[row][col][0] = TGmat + (2 * MAX_ROW + 2 * col + 0) * GRID_VOLUME();
-            TGMAT[row][col][1] = TGmat + (2 * MAX_ROW + 2 * col + 1) * GRID_VOLUME();
+            TGMAT[row][col][0] = TGmat + (row * 2 * MAX_COL + 2 * col + 0) * GRID_VOLUME();
+            TGMAT[row][col][1] = TGmat + (row * 2 * MAX_COL + 2 * col + 1) * GRID_VOLUME();
         }
     }
+    // check_diff(src, TGA, GRID_VOLUME());
+    // check_diff(mat, TGMAT, GRID_VOLUME());
 
     /// Complex Vector dest = XY + Y;
-    {
-        watcher.reset();
-        ComplexAry_CXYpY(CY, CA, CY, MAX_COL * GRID_VOLUME());
-        double timeCV = watcher.use();
-
-        watcher.reset();
-        TensorGrid_CXYpY(TGY, TGsrc, TGY, MAX_COL, GRID_VOLUME());
-        double timeTGV = watcher.use();
-
-        DataType diffY = check_diff(Y, TGY, 2 * MAX_COL, GRID_VOLUME());
-        printf("  XYpY  Acc:%6.2lf    diff%12.4e  GridSize  %ld\n", timeCV / timeTGV, diffY, GRID_VOLUME());
-    }
-
-    // { /// TGB = TGMAT * TGA;
+    // {
     //     watcher.reset();
-    //     ComplexAry_MatrixVector(CB, CMat, CA, GRID_VOLUME());
-    //     double timeCMV = watcher.use();
+    //     ComplexAry_CXYpY(CY, CA, CY, MAX_COL * GRID_VOLUME());
+    //     double timeCV = watcher.use();
 
     //     watcher.reset();
-    //     TensorGrid_CMatrixVector(TGdes, TGmat, TGsrc, GRID_VOLUME());
-    //     double timeTGMV = watcher.use();
+    //     TensorGrid_CXYpY(TGY, TGsrc, TGY, MAX_COL, GRID_VOLUME());
+    //     double timeTGV = watcher.use();
 
-    //     DataType diffres = check_diff(des, TGdes, 2 * MAX_ROW, GRID_VOLUME());
-    //     printf("  Gemv  Acc:%6.2lf   CompAry %10.4e TensorGrid %10.4e  diff%12.4e  GridSize %ld\n", timeCMV / timeTGMV,
-    //            timeCMV, timeTGMV, diffres, GRID_VOLUME());
+    //     DataType diffY = check_diff(Y, TGY, 2 * MAX_COL, GRID_VOLUME());
+    //     printf("  XYpY  Acc:%6.2lf    diff%12.4e  GridSize  %ld\n", timeCV /
+    //     timeTGV, diffY, GRID_VOLUME());
     // }
 
-    fprintf(stderr, " ============ Total time : %g seconds ================\n\n", watcher.total());
+    /// TGB = TGMAT * TGA;
+    watcher.reset();
+    ComplexAry_MatrixVector(CB, CMat, CA, GRID_VOLUME());
+    // ComplexAry_MatrixVector02(CB, CMat, CA, GRID_VOLUME());
+    // TensorGrid_CMatrixVector(TGdes, TGmat, TGsrc, GRID_VOLUME());
+    TensorGrid_CMatrixVector(TGB, TGMAT, TGA, GRID_VOLUME());
+    double timeCMV0 = watcher.use();
+
+    // watcher.reset();
+    // ComplexAry_MatrixVector02(CB, CMat, CA, GRID_VOLUME());
+    // double timeCMV02 = watcher.use();
+    // printf("Complex Array ACC: timeCMV2 / timeCMV0 = %6.2lf\n", timeCMV02 / timeCMV0);
+
+    watcher.reset();
+    TensorGrid_CMatrixVector(TGdes, TGmat, TGsrc, GRID_VOLUME());
+    double timeTGMV = watcher.use();
+
+    DataType diffres = check_diff(des, TGdes, 2 * MAX_ROW, GRID_VOLUME());
+    printf("  Gemv  Acc:%6.2lf   CompAry %8.2e TensorGrid %8.2e  diff%12.4e  GridSize %ld\n", timeCMV0 / timeTGMV,
+           timeCMV0, timeTGMV, diffres, GRID_VOLUME());
+
+    // fprintf(stderr, " ============ Total time : %g seconds
+    // ================\n\n", watcher.total());
 
     delete[] mat;
     delete[] src;

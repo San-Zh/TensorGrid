@@ -1,41 +1,42 @@
+#!/bin/bash
 export OMP_NUM_THREADS=1
-# MSIZE=4
-# TENSOR='-DCOLUMN='$MSIZE' -DROW='$MSIZE
-TENSOR='-DMAX_ROW=3 -DMAX_COL=3'
-PREC='-DPRECISION=SINGLE'
-# GSIZE='-DSIZE' -mfma -mavx512vl 
-CXXFLAG='-O3 -fopenmp'
 
-# CFILE="tensorgrid_R3.cpp"
+TENSOR="-DMAX_ROW=3 -DMAX_COL=3"
+PREC="-DPRECISION=SINGLE"
+
+# GSIZE='-DSIZE' -mfma -mavx512vl core-avx2   -march=skylake-avx512
+# GCC8.2.0中关于向量化操作的选项有：
+# -ftree-loop-vectorize、-ftree-slp-vectorize、
+# -ftree-loop-if-convert、-ftree-vectorize、-fvect-cost-model=model、-fsimd-cost-model=model(cheap\dynamic\unlimited)。
+# 前两个向量化选项默认情况下在-O3中已启用，这里不一一说明。
+
+#gnu
+# SIMDFLAGS="-mfma -ftree-vectorize -march=native " # -march=native
+# "-ftree-loop-if-convert" -march=skylake-avx512 corei7-avx
+#llvm clang
+SIMDFLAGS="-march=native -funroll-loops" # -Rpass-missed=loop-vectorize
+
+# CXXFLAG+="-c -g -Wa,-adlhn " # 汇编+源码
+CXXFLAG+="-O0 ${SIMDFLAGS}"
+CXX=g++
+# CXX=clang++
+
 CFILE="tensorgrid_su3.cpp"
+# CFILE="tensorgrid_R3.cpp"
 
-echo "cxx ${CXXFLAG} ${TENSOR} ${PREC}  ${CFILE}" 
+echo "${CXX} ${CXXFLAG} ${TENSOR} ${PREC}  ${CFILE}"
 
-# g++ $CXXFLAG $PREC $TENSOR ${CFILE} -DSIZE=8
-# ./a.out
-# g++ $CXXFLAG $PREC $TENSOR ${CFILE} -DSIZE=16
-# ./a.out
-# g++ $CXXFLAG $PREC $TENSOR ${CFILE} -DSIZE=32
-# ./a.out
-# g++ $CXXFLAG $PREC $TENSOR ${CFILE} -DSIZE=64
-# ./a.out
-g++ $CXXFLAG $PREC $TENSOR ${CFILE} -DSIZE=128
-./a.out
-g++ $CXXFLAG $PREC $TENSOR ${CFILE} -DSIZE=256
-./a.out
-g++ $CXXFLAG $PREC $TENSOR ${CFILE} -DSIZE=512
-./a.out
-g++ $CXXFLAG $PREC $TENSOR ${CFILE} -DSIZE=1024       # 256   64
-./a.out
-g++ $CXXFLAG $PREC $TENSOR ${CFILE} -DSIZE=1024*2     # 128   32
-./a.out
-g++ $CXXFLAG $PREC $TENSOR ${CFILE} -DSIZE=1024*4     # 64    16
-./a.out
-g++ $CXXFLAG $PREC $TENSOR ${CFILE} -DSIZE=1024*8     # 32    8
-./a.out
-g++ $CXXFLAG $PREC $TENSOR ${CFILE} -DSIZE=1024*16    # 16    4
-./a.out
-g++ $CXXFLAG $PREC $TENSOR ${CFILE} -DSIZE=1024*32    # 8     2
-./a.out
-g++ $CXXFLAG $PREC $TENSOR ${CFILE} -DSIZE=1024*64    # 4     1
-./a.out
+# Multiple=$(seq 1 1 64)
+Multiple=( 1 2 4 8 16 32 64 128 256 512 1024 2048 4096)
+# Multiple=(2048)
+# Multiple=(2)
+echo "Multiple: ${Multiple[*]}"
+
+# 2^7= 4*4*4*2
+SizeBase=64
+echo "SizeBase: ${SizeBase}"
+
+for mul in ${Multiple[*]};do
+    ${CXX} ${CXXFLAG} ${PREC} ${TENSOR} ${CFILE} -DSIZE=$[${mul}*${SizeBase}]
+    ./a.out
+done
