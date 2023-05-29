@@ -23,7 +23,9 @@
 typedef DataType *CMatrixPtr[MAX_ROW][MAX_COL][2];
 typedef DataType *CVectorPtrCol[MAX_COL][2];
 typedef DataType *CVectorPtrRow[MAX_ROW][2];
+
 typedef std::complex<DataType> *ComplexPtr;
+typedef std::complex<DataType> Complex;
 
 typedef DataType *RMatrixPtr[MAX_ROW][MAX_COL];
 typedef DataType *RVectorPtrCol[MAX_COL];

@@ -85,7 +85,6 @@ int main(int argc, char **argv)
     //     timeTGV, diffY, GRID_VOLUME());
     // }
 
-    /// TGB = TGMAT * TGA;
     watcher.reset();
     ComplexAry_MatrixVector(CB, CMat, CA, GRID_VOLUME());
     // ComplexAry_MatrixVector02(CB, CMat, CA, GRID_VOLUME());
@@ -96,14 +95,16 @@ int main(int argc, char **argv)
     // watcher.reset();
     // ComplexAry_MatrixVector02(CB, CMat, CA, GRID_VOLUME());
     // double timeCMV02 = watcher.use();
-    // printf("Complex Array ACC: timeCMV2 / timeCMV0 = %6.2lf\n", timeCMV02 / timeCMV0);
+    // printf("Complex Array ACC: timeCMV0 / timeCMV02 = %6.2lf\n", timeCMV0 / timeCMV02);
 
+    /// TGB = TGMAT * TGA;
     watcher.reset();
     TensorGrid_CMatrixVector(TGdes, TGmat, TGsrc, GRID_VOLUME());
+    // TensorGrid_CMatrixVector02(TGdes, TGmat, TGsrc, GRID_VOLUME());
     double timeTGMV = watcher.use();
 
     DataType diffres = check_diff(des, TGdes, 2 * MAX_ROW, GRID_VOLUME());
-    printf("  Gemv  Acc:%6.2lf   CompAry %8.2e TensorGrid %8.2e  diff%12.4e  GridSize %ld\n", timeCMV0 / timeTGMV,
+    printf("  Gemv  Acc:%6.2lf   CompAry %8.2e TensorGrid %8.2e  diff %8.2e  GridSize %ld\n", timeCMV0 / timeTGMV,
            timeCMV0, timeTGMV, diffres, GRID_VOLUME());
 
     // fprintf(stderr, " ============ Total time : %g seconds

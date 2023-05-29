@@ -21,8 +21,8 @@ CXXFLAG+="-O3 ${SIMDFLAGS}"
 CXX=g++
 # CXX=clang++
 
-# CFILE="tensorgrid_su3.cpp"
-CFILE="tensorgrid_R3.cpp"
+CFILE="tensorgrid_su3.cpp"
+# CFILE="tensorgrid_R3.cpp"
 
 echo "${CXX} ${CXXFLAG} ${TENSOR} ${PREC}  ${CFILE}"
 
@@ -33,7 +33,7 @@ Multiple=( 1 2 4 8 16 32 64 128 256 512 1024 2048 4096)
 echo "Multiple: ${Multiple[*]}"
 
 # 2^7= 4*4*4*2
-SizeBase=64
+SizeBase=512
 echo "SizeBase: ${SizeBase}"
 
 for mul in ${Multiple[*]};do

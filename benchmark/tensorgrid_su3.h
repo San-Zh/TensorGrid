@@ -51,11 +51,21 @@ void ComplexAry_MatrixVector(ComplexPtr dest, ComplexPtr mat, ComplexPtr src, si
 
 void ComplexAry_MatrixVector02(ComplexPtr dest, ComplexPtr mat, ComplexPtr src, size_t gridSize)
 {
-    for (size_t row = 0; row < MAX_ROW; row++) {
-        for (size_t col = 0; col < MAX_COL; col++) {
-            for (size_t v = 0; v < gridSize; v++) {
-                dest[v * MAX_ROW + row] += mat[v * MAX_ROW * MAX_COL + row * MAX_COL + col] * src[v * MAX_COL + col];
+    /// the lager grid volume is, the lower performance than the base ComplexAry_MatrixVector()
+    // for (size_t row = 0; row < MAX_ROW; row++) {
+    //     for (size_t col = 0; col < MAX_COL; col++) {
+    //         for (size_t v = 0; v < gridSize; v++) {
+    //             dest[v * MAX_ROW + row] += mat[v * MAX_ROW * MAX_COL + row * MAX_COL + col] * src[v * MAX_COL + col];
+    //         }
+    //     }
+    // }
+    for (size_t v = 0; v < gridSize; v++) {
+        Complex res[MAX_ROW] = {0.0};
+        for (size_t row = 0; row < MAX_ROW; row++) {
+            for (size_t col = 0; col < MAX_COL; col++) {
+                res[row] += mat[v * MAX_ROW * MAX_COL + row * MAX_COL + col] * src[v * MAX_COL + col];
             }
+            dest[v * MAX_ROW + row] = res[row];
         }
     }
 }
@@ -84,23 +94,68 @@ void TensorGrid_CMatrixVector(DataType *dest, DataType *mat, DataType *src, size
         }
     }
 
-    DataType re = 0.0;
-    DataType im = 0.0;
     for (size_t col = 0; col < MAX_COL; col++) {
         for (size_t row = 0; row < MAX_ROW; row++) {
             for (size_t v = 0; v < gridSize; v++) {
-                re = pm[row][col][0][v] * ps[col][0][v] - pm[row][col][1][v] * ps[col][1][v];
-                im = pm[row][col][0][v] * ps[col][1][v] + pm[row][col][1][v] * ps[col][0][v];
+                DataType re = pm[row][col][0][v] * ps[col][0][v] - pm[row][col][1][v] * ps[col][1][v];
+                DataType im = pm[row][col][0][v] * ps[col][1][v] + pm[row][col][1][v] * ps[col][0][v];
                 pd[row][0][v] += re;
                 pd[row][1][v] += im;
-                // pd[row][0][v] += pm[row][col][0][v] * ps[col][0][v];
-                // pd[row][0][v] -= pm[row][col][1][v] * ps[col][1][v];
-                // pd[row][1][v] += pm[row][col][0][v] * ps[col][1][v];
-                // pd[row][1][v] += pm[row][col][1][v] * ps[col][0][v];
                 // *(pd[row][0] + v) += *(pm[row][col][0] + v) * *(ps[col][0] + v) - *(pm[row][col][1] + v) * *(ps[col][1] + v);
                 // *(pd[row][1] + v) += *(pm[row][col][0] + v) * *(ps[col][1] + v) + *(pm[row][col][1] + v) * *(ps[col][0] + v);
             }
         }
+    }
+}
+
+void TensorGrid_CMatrixVector02(DataType *TGdes, DataType *TGmat, DataType *TGsrc, size_t gridSize)
+{
+    DataPointer m00re = TGmat + (0 * 2 * MAX_COL + 0) * gridSize;
+    DataPointer m00im = TGmat + (0 * 2 * MAX_COL + 1) * gridSize;
+    DataPointer m01re = TGmat + (0 * 2 * MAX_COL + 2) * gridSize;
+    DataPointer m01im = TGmat + (0 * 2 * MAX_COL + 3) * gridSize;
+    DataPointer m02re = TGmat + (0 * 2 * MAX_COL + 4) * gridSize;
+    DataPointer m02im = TGmat + (0 * 2 * MAX_COL + 5) * gridSize;
+    DataPointer m10re = TGmat + (1 * 2 * MAX_COL + 0) * gridSize;
+    DataPointer m10im = TGmat + (1 * 2 * MAX_COL + 1) * gridSize;
+    DataPointer m11re = TGmat + (1 * 2 * MAX_COL + 2) * gridSize;
+    DataPointer m11im = TGmat + (1 * 2 * MAX_COL + 3) * gridSize;
+    DataPointer m12re = TGmat + (1 * 2 * MAX_COL + 4) * gridSize;
+    DataPointer m12im = TGmat + (1 * 2 * MAX_COL + 5) * gridSize;
+    DataPointer m20re = TGmat + (2 * 2 * MAX_COL + 0) * gridSize;
+    DataPointer m20im = TGmat + (2 * 2 * MAX_COL + 1) * gridSize;
+    DataPointer m21re = TGmat + (2 * 2 * MAX_COL + 2) * gridSize;
+    DataPointer m21im = TGmat + (2 * 2 * MAX_COL + 3) * gridSize;
+    DataPointer m22re = TGmat + (2 * 2 * MAX_COL + 4) * gridSize;
+    DataPointer m22im = TGmat + (2 * 2 * MAX_COL + 5) * gridSize;
+
+    DataPointer vs0re = TGsrc + 0 * gridSize;
+    DataPointer vs0im = TGsrc + 1 * gridSize;
+    DataPointer vs1re = TGsrc + 2 * gridSize;
+    DataPointer vs1im = TGsrc + 3 * gridSize;
+    DataPointer vs2re = TGsrc + 4 * gridSize;
+    DataPointer vs2im = TGsrc + 5 * gridSize;
+
+    DataPointer vd0re = TGdes + 0 * gridSize;
+    DataPointer vd0im = TGdes + 1 * gridSize;
+    DataPointer vd1re = TGdes + 2 * gridSize;
+    DataPointer vd1im = TGdes + 3 * gridSize;
+    DataPointer vd2re = TGdes + 4 * gridSize;
+    DataPointer vd2im = TGdes + 5 * gridSize;
+
+    for (size_t i = 0; i < gridSize; i++) {
+        vd0re[i] = m00re[i] * vs0re[i] - m00im[i] * vs0im[i] + m01re[i] * vs1re[i] - m01im[i] * vs1im[i] +
+                   m02re[i] * vs2re[i] - m02im[i] * vs2im[i];
+        vd0im[i] = m00re[i] * vs0im[i] + m00im[i] * vs0re[i] + m01re[i] * vs1im[i] + m01im[i] * vs1re[i] +
+                   m02re[i] * vs2im[i] + m02im[i] * vs2re[i];
+        vd1re[i] = m10re[i] * vs0re[i] - m10im[i] * vs0im[i] + m11re[i] * vs1re[i] - m11im[i] * vs1im[i] +
+                   m12re[i] * vs2re[i] - m12im[i] * vs2im[i];
+        vd1im[i] = m10re[i] * vs0im[i] + m10im[i] * vs0re[i] + m11re[i] * vs1im[i] + m11im[i] * vs1re[i] +
+                   m12re[i] * vs2im[i] + m12im[i] * vs2re[i];
+        vd2re[i] = m20re[i] * vs0re[i] - m20im[i] * vs0im[i] + m21re[i] * vs1re[i] - m21im[i] * vs1im[i] +
+                   m22re[i] * vs2re[i] - m22im[i] * vs2im[i];
+        vd2im[i] = m20re[i] * vs0im[i] + m20im[i] * vs0re[i] + m21re[i] * vs1im[i] + m21im[i] * vs1re[i] +
+                   m22re[i] * vs2im[i] + m22im[i] * vs2re[i];
     }
 }
 
@@ -138,7 +193,7 @@ void TensorGrid_CMatrixVector(CVectorPtrRow dest, CMatrixPtr mat, CVectorPtrCol 
  * @param src 
  * @param gridSize 
  */
-void TensorGrid_CMatrixVector02(CVectorPtrRow dest, CMatrixPtr mat, CVectorPtrCol src, size_t gridSize)
+void TensorGrid_CMatrixVector03(CVectorPtrRow dest, CMatrixPtr mat, CVectorPtrCol src, size_t gridSize)
 {
     DataType re;
     DataType im;

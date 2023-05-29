@@ -35,25 +35,27 @@ int main(int argc, char **argv)
     // check_diff(des, TGdes, MAX_ROW, GRID_VOLUME());
 #endif
 
-    /// TGB = TGMAT * TGA;
     watcher.reset();
     RealArray_MatrixVector(des, mat, src, GRID_VOLUME());
+    // RealArray_MatrixVector02(des, mat, src, GRID_VOLUME());
     // TensorGrid_RMatrixVector(TGdes, TGmat, TGsrc, GRID_VOLUME());
     double timeMV = watcher.use();
 
-    watcher.reset();
-    RealArray_MatrixVector02(des, mat, src, GRID_VOLUME());
-    double timeMV02 = watcher.use();
-    printf("Real Array ACC: timeCMV2 / timeCMV0 = %6.2lf\n", timeMV / timeMV02);
-
     // watcher.reset();
-    // TensorGrid_RMatrixVector(TGdes, TGmat, TGsrc, GRID_VOLUME());
-    // // TensorGrid_RMatrixVector03(TGdes, TGmat, TGsrc, GRID_VOLUME());
-    // double timeTGMV = watcher.use();
+    // RealArray_MatrixVector02(des, mat, src, GRID_VOLUME());
+    // double timeMV02 = watcher.use();
+    // printf("Real Array ACC: timeCMV0 / timeCMV02 = %6.2lf\n", timeMV / timeMV02);
 
-    // DataType diff = check_diff(des, TGdes, MAX_ROW, GRID_VOLUME());
-    // printf("Gemv: Acc:%6.2lf   RealAry%10.2e  TensorGrid %10.2e   diff%10.2e  GridSize %ld\n", timeMV / timeTGMV,
-    //        timeMV, timeTGMV, diff, GRID_VOLUME());
+    ////// TGB = TGMAT * TGA;
+    watcher.reset();
+    TensorGrid_RMatrixVector(TGdes, TGmat, TGsrc, GRID_VOLUME());
+    // TensorGrid_RMatrixVector02(TGdes, TGmat, TGsrc, GRID_VOLUME());
+    // TensorGrid_RMatrixVector03(TGdes, TGmat, TGsrc, GRID_VOLUME());
+    double timeTGMV = watcher.use();
+
+    DataType diff = check_diff(des, TGdes, MAX_ROW, GRID_VOLUME());
+    printf("Gemv: Acc:%6.2lf   RealAry%10.2e  TensorGrid %10.2e   diff%10.2e  GridSize %ld\n", timeMV / timeTGMV,
+           timeMV, timeTGMV, diff, GRID_VOLUME());
 
     delete[] mat;
     delete[] src;
