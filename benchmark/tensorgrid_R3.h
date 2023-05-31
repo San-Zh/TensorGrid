@@ -6,6 +6,39 @@
 #include <iostream>
 #include "setup.h"
 
+void RealArray_RXYpY(DataType *dest, DataType *X, DataType *Y, size_t size)
+{
+    for (size_t v = 0; v < size; v++) {
+        dest[v] = X[v] * Y[v] + Y[v];
+    }
+}
+
+void TensorGrid_RXYpY(DataType *dest, DataType *X, DataType *Y, size_t tensorSize, size_t gridSize)
+{
+    for (size_t its = 0; its < tensorSize; its++) {
+        DataType *Xre = X + its * gridSize;
+        DataType *Yre = Y + its * gridSize;
+        DataType *destre = dest + its * gridSize;
+        for (size_t v = 0; v < gridSize; v++) {
+            destre[v] = Xre[v] * Yre[v] + Yre[v];
+        }
+    }
+
+    // DataType *ptrX[tensorSize];
+    // DataType *ptrY[tensorSize];
+    // DataType *ptrDes[tensorSize];
+    // for (size_t its = 0; its < tensorSize; its++) {
+    //     ptrX[its] = X + its * gridSize;
+    //     ptrY[its] = Y + its * gridSize;
+    //     ptrDes[its] = dest + its * gridSize;
+    // }
+    // for (size_t v = 0; v < gridSize; v++) {
+    //     for (size_t its = 0; its < tensorSize; its++) {
+    //         ptrDes[its][v] = ptrX[its][v] * ptrY[its][v] + ptrY[its][v];
+    //     }
+    // }
+}
+
 void RealArray_MatrixVector(DataType *dest, DataType *mat, DataType *src, size_t sizeGrid)
 {
     for (size_t v = 0; v < sizeGrid; v++) {

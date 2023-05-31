@@ -45,13 +45,13 @@ class timer {
     _INLINE_ FLOAT use()
     {
         gettimeofday(&t_end, NULL);
-        return (t_end.tv_sec - t_begin.tv_sec) + (t_end.tv_usec - t_begin.tv_usec) / 1000000.0;
+        return (FLOAT)(t_end.tv_sec - t_begin.tv_sec) + (FLOAT)(t_end.tv_usec - t_begin.tv_usec) / 1000000.0;
     }
 
     _INLINE_ FLOAT use_usec()
     {
         gettimeofday(&t_end, NULL);
-        return (t_end.tv_sec - t_begin.tv_sec) * 1000000.0 + (t_end.tv_usec - t_begin.tv_usec);
+        return (FLOAT)(t_end.tv_sec - t_begin.tv_sec) * 1000000.0 + (FLOAT)(t_end.tv_usec - t_begin.tv_usec);
     }
 
     _INLINE_ FLOAT total() { return timeuse + use(); }

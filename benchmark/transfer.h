@@ -6,30 +6,112 @@
 #include "setup.h"
 
 template <typename Tp>
-void tranfer2TG(Tp *dest, Tp *src, size_t sizeTensor, size_t sizeGrid)
+void tranfer2TG(Tp *TGdest, Tp *src, size_t sizeTensor, size_t sizeGrid)
 {
     for (size_t v = 0; v < sizeGrid; v++) {
         for (size_t its = 0; its < sizeTensor; its++) {
-            *(dest + its * sizeGrid + v) = *(src + v * sizeTensor + its);
+            *(TGdest + its * sizeGrid + v) = *(src + v * sizeTensor + its);
+        }
+    }
+    // Tp *tgptr[sizeTensor];
+    // for (size_t it = 0; it < sizeTensor; it++) {
+    //     tgptr[it] = TGdest + it * sizeGrid;
+    // }
+    // for (size_t v = 0; v < sizeGrid; v++) {
+    //     for (size_t its = 0; its < sizeTensor; its++) {
+    //         *(tgptr[its] + v) = *(src + v * sizeTensor + its);
+    //         // tgptr[its][v] = src[v * sizeTensor + its];
+    //     }
+    // }
+}
+
+template <typename Tp>
+void tranfer2general(Tp *dest, Tp *TGsrc, size_t sizeTensor, size_t sizeGrid)
+{
+    for (size_t v = 0; v < sizeGrid; v++) {
+        for (size_t its = 0; its < sizeTensor; its++) {
+            *(dest + v * sizeTensor + its) = *(TGsrc + its * sizeGrid + v);
+        }
+    }
+    // Tp *tgptr[sizeTensor];
+    // for (size_t it = 0; it < sizeTensor; it++) {
+    //     tgptr[it] = TGsrc + it * sizeGrid;
+    // }
+    // for (size_t v = 0; v < sizeGrid; v++) {
+    //     for (size_t its = 0; its < sizeTensor; its++) {
+    //         *(dest + v * sizeTensor + its) = *(tgptr[its] + v);
+    //         // *(dest + v * sizeTensor + its) = *(TGsrc + its * sizeGrid + v);
+    //     }
+    // }
+}
+
+#if 0
+template <typename Tp>
+void tranfer2TG(Tp *TGdest, Tp *src, size_t sizeTensor, size_t sizeGrid)
+{
+    Tp *srcptr;
+    Tp *tgptr[sizeTensor];
+    for (size_t it = 0; it < sizeTensor; it++) {
+        tgptr[it] = &((TGdest + it * sizeGrid)[0]);
+        // tgptr[it] = TGdest + it * sizeGrid;
+    }
+
+    for (srcptr = &src[0]; srcptr < src + sizeTensor * sizeGrid; srcptr += sizeTensor) {
+        for (size_t it = 0; it < sizeTensor; it++) {
+            *(tgptr[it]) = *(srcptr + it);
+        }
+        for (size_t it = 0; it < sizeTensor; it++) {
+            tgptr[it]++;
         }
     }
 }
 
-void random(DataType *src, size_t size)
+/**
+ * @brief 
+ * 
+ * @tparam Tp 
+ * @param dest 
+ * @param TGsrc 
+ * @param sizeTensor 
+ * @param sizeGrid 
+ */
+template <typename Tp>
+void tranfer2general(Tp *dest, Tp *TGsrc, size_t sizeTensor, size_t sizeGrid)
 {
-    DataType RdmInv = 1.0 / static_cast<DataType>(RAND_MAX);
+    Tp *desptr;
+    Tp *tgptr[sizeTensor];
+    for (size_t it = 0; it < sizeTensor; it++) {
+        tgptr[it] = &((TGsrc + it * sizeGrid)[0]);
+    }
+
+    for (desptr = &dest[0]; desptr < dest + sizeTensor * sizeGrid; desptr += sizeTensor) {
+        for (size_t it = 0; it < sizeTensor; it++) {
+            *(desptr + it) = *(tgptr[it]);
+        }
+        for (size_t it = 0; it < sizeTensor; it++) {
+            tgptr[it]++;
+        }
+    }
+}
+
+#endif
+
+template <typename Tp>
+void random(Tp *src, size_t size)
+{
+    Tp RdmInv = (Tp)(1) / static_cast<Tp>(RAND_MAX);
     for (size_t i = 0; i < size; i++) {
-        src[i] = static_cast<DataType>(random()) * RdmInv;
+        src[i] = static_cast<Tp>(random()) * RdmInv;
         // src[i] = static_cast<DataType>(i);
     }
 }
 
 template <typename Tp>
-Tp check_diff(Tp *A, Tp *B, size_t sizeTensor, size_t sizeGrid)
+Tp diff_Ary_TGAry(Tp *A, Tp *TGA, size_t sizeTensor, size_t sizeGrid)
 {
     Tp *pb[sizeTensor];
     for (size_t its = 0; its < sizeTensor; its++) {
-        pb[its] = B + its * sizeGrid;
+        pb[its] = TGA + its * sizeGrid;
     }
 
     Tp diff = 0.0;
@@ -44,61 +126,23 @@ Tp check_diff(Tp *A, Tp *B, size_t sizeTensor, size_t sizeGrid)
 #endif
         }
     }
-#ifdef debug
-    // printf("%42s\n", "--------------------------");
-    printf("%28s%14.4e\n\n", "sum of diff", sum);
-#endif
     return sum;
 }
 
-DataType check_diff(DataType *A, CVectorPtrCol B, size_t sizeGrid)
+template <typename Tp>
+Tp diff_vector_norm2(Tp *A, Tp *B, size_t Size)
 {
-    DataType diffre = 0.0;
-    DataType diffim = 0.0;
-    DataType sum = 0.0;
+    Tp *ptrA;
+    Tp *ptrB;
+    DataType diff = 0.0;
+    DataType res = 0.0;
     // for (size_t i = 0; i < 4; i++){
-    for (size_t i = 0; i < sizeGrid; i++) {
-        for (size_t col = 0; col < MAX_COL; col++) {
-            diffre = A[i * 2 * MAX_COL + 2 * col + 0] - B[col][0][i];
-            diffim = A[i * 2 * MAX_COL + 2 * col + 1] - B[col][1][i];
-            sum += diffre + diffim;
+    for (ptrA = A, ptrB = B; ptrA != A + Size; ptrA++, ptrB++) {
+        diff = *ptrA - *ptrB;
+        res += diff * diff;
 #ifdef debug
-            printf("%14.4e%14.4e%14.4e\n", A[i * 2 * MAX_COL + 2 * col + 0], B[col][0][i], diffre);
-            printf("%14.4e%14.4e%14.4e\n", A[i * 2 * MAX_COL + 2 * col + 1], B[col][1][i], diffim);
+        printf("%14.4e%14.4e%14.4e\n", *ptrA, *ptrB, res);
 #endif
-        }
     }
-#ifdef debug
-    // printf("%42s\n", "--------------------------");
-    printf("%28s%14.4e\n\n", "sum of diff", sum);
-#endif
-    return sum;
-}
-
-DataType check_diff(DataType *A, CMatrixPtr B, size_t sizeGrid)
-{
-    DataType diffre = 0.0;
-    DataType diffim = 0.0;
-    DataType sum = 0.0;
-    // for (size_t i = 0; i < 4; i++){
-    for (size_t i = 0; i < sizeGrid; i++) {
-        for (size_t row = 0; row < MAX_COL; row++) {
-            for (size_t col = 0; col < MAX_COL; col++) {
-                diffre = A[i * 2 * MAX_COL * MAX_ROW + row * 2 * MAX_COL + 2 * col + 0] - B[row][col][0][i];
-                diffim = A[i * 2 * MAX_COL * MAX_ROW + row * 2 * MAX_COL + 2 * col + 1] - B[row][col][1][i];
-                sum += diffre + diffim;
-#ifdef debug
-                printf("%14.4e%14.4e%14.4e\n", A[i * 2 * MAX_COL * MAX_ROW + row * 2 * MAX_COL + 2 * col + 0],
-                       B[row][col][0][i], diffre);
-                printf("%14.4e%14.4e%14.4e\n", A[i * 2 * MAX_COL * MAX_ROW + row * 2 * MAX_COL + 2 * col + 1],
-                       B[row][col][1][i], diffim);
-#endif
-            }
-        }
-    }
-#ifdef debug
-    printf("%28s%14.4e\n\n", "sum of diff", sum);
-    // printf("%42s\n", "--------------------------");
-#endif
-    return sum;
+    return res;
 }

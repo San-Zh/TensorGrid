@@ -6,6 +6,31 @@
 #include "setup.h"
 #include "transfer.h"
 
+template <typename Tp>
+void AryIO(Tp *dest, Tp *src, size_t size)
+{
+    for (size_t v = 0; v < size; v++) {
+        dest[v] = src[v];
+    }
+}
+
+template <typename Tp>
+void AryRead(Tp *src, size_t size)
+{
+    Tp tmp;
+    for (size_t v = 0; v < size; v++) {
+        tmp = src[v];
+    }
+}
+
+template <typename Tp>
+void AryWrite(Tp *dest, size_t size)
+{
+    for (size_t v = 0; v < size; v++) {
+        dest[v] = 1.0;
+    }
+}
+
 void ComplexAry_CXYpY(ComplexPtr dest, ComplexPtr X, ComplexPtr Y, size_t size)
 {
     for (size_t v = 0; v < size; v++) {
@@ -15,7 +40,7 @@ void ComplexAry_CXYpY(ComplexPtr dest, ComplexPtr X, ComplexPtr Y, size_t size)
 
 void TensorGrid_CXYpY(DataType *dest, DataType *X, DataType *Y, size_t tensorSize, size_t gridSize)
 {
-    double re, im;
+    DataType re, im;
     for (size_t its = 0; its < tensorSize; its++) {
         DataType *Xre = X + its * 2 * gridSize;
         DataType *Xim = X + (its * 2 + 1) * gridSize;
@@ -31,6 +56,82 @@ void TensorGrid_CXYpY(DataType *dest, DataType *X, DataType *Y, size_t tensorSiz
         }
     }
 }
+
+void ComplexAry_CXTY(ComplexPtr dest, ComplexPtr X, ComplexPtr Y, size_t tensorSize, size_t gridSize)
+{
+    for (size_t v = 0; v < gridSize; v++) {
+        for (size_t its = 0; its < tensorSize; its++) {
+            dest[v] += X[its + v * tensorSize] * Y[its + v * tensorSize];
+        }
+    }
+}
+
+void TensorGrid_CXTY(DataType *dest, DataType *X, DataType *Y, size_t tensorSize, size_t gridSize)
+{
+    DataType re, im;
+    for (size_t its = 0; its < tensorSize; its++) {
+        DataType *Xre = X + (its * 2) * gridSize;
+        DataType *Xim = X + (its * 2 + 1) * gridSize;
+        DataType *Yre = Y + (its * 2) * gridSize;
+        DataType *Yim = Y + (its * 2 + 1) * gridSize;
+        DataType *destre = dest;
+        DataType *destim = dest + gridSize;
+        for (size_t v = 0; v < gridSize; v++) {
+            re = Xre[v] * Yre[v] - Xim[v] * Yim[v];
+            im = Xre[v] * Yim[v] + Xim[v] * Yre[v];
+            destre[v] += re;
+            destim[v] += im;
+        }
+    }
+
+    // DataPointer Xre[tensorSize], Xim[tensorSize];
+    // DataPointer Yre[tensorSize], Yim[tensorSize];
+    // DataPointer destre = dest;
+    // DataPointer destim = dest + gridSize;
+    // for (size_t its = 0; its < tensorSize; its++) {
+    //     Xre[its] = X + (its * 2) * gridSize;
+    //     Xim[its] = X + (its * 2 + 1) * gridSize;
+    //     Yre[its] = Y + (its * 2) * gridSize;
+    //     Yim[its] = Y + (its * 2 + 1) * gridSize;
+    //     // }
+    //     // for (size_t its = 0; its < tensorSize; its++) {
+    //     for (size_t v = 0; v < gridSize; v++) {
+    //         re = Xre[its][v] * Yre[its][v] - Xim[its][v] * Yim[its][v];
+    //         im = Xre[its][v] * Yim[its][v] + Xim[its][v] * Yre[its][v];
+    //         destre[v] += re;
+    //         destim[v] += im;
+    //     }
+    // }
+}
+
+// void TensorGrid_CXYpY(DataType *dest, DataType *X, DataType *Y, size_t tensorSize, size_t gridSize)
+// {
+//     DataPointer Xre[tensorSize];
+//     DataPointer Xim[tensorSize];
+//     DataPointer Yre[tensorSize];
+//     DataPointer Yim[tensorSize];
+//     DataPointer Desre[tensorSize];
+//     DataPointer Desim[tensorSize];
+//     for (size_t it = 0; it < tensorSize; it++) {
+//         Xre[it] = X + it * 2 * gridSize;
+//         Xim[it] = X + (it * 2 + 1) * gridSize;
+
+//         Yre[it] = Y + it * 2 * gridSize;
+//         Yim[it] = Y + (it * 2 + 1) * gridSize;
+
+//         Desre[it] = dest + it * 2 * gridSize;
+//         Desim[it] = dest + (it * 2 + 1) * gridSize;
+//     }
+
+//     for (size_t it = 0; it < tensorSize; it++) {
+//         for (size_t v = 0; v < gridSize; v++) {
+//             DataType re = Xre[it][v] * Yre[it][v] - Xim[it][v] * Yim[it][v] + Yre[it][v];
+//             DataType im = Xre[it][v] * Yim[it][v] + Xim[it][v] * Yre[it][v] + Yim[it][v];
+//             Desre[it][v] = re;
+//             Desim[it][v] = im;
+//         }
+//     }
+// }
 
 /// @brief when gridSize > 1024*8 double, this method accelerate rate mothan 4.0, compare to the method as followed;
 ///         here test pc L1(32K+32K) L2(1024K) L3(17M)
@@ -83,19 +184,19 @@ void TensorGrid_CMatrixVector(DataType *dest, DataType *mat, DataType *src, size
         ps[col][0] = src + col * 2 * gridSize;
         ps[col][1] = src + (col * 2 + 1) * gridSize;
     }
-    for (size_t row = 0; row < MAX_COL; row++) {
+    for (size_t row = 0; row < MAX_ROW; row++) {
         pd[row][0] = dest + row * 2 * gridSize;
         pd[row][1] = dest + (row * 2 + 1) * gridSize;
     }
-    for (size_t row = 0; row < MAX_COL; row++) {
+    for (size_t row = 0; row < MAX_ROW; row++) {
         for (size_t col = 0; col < MAX_COL; col++) {
             pm[row][col][0] = mat + (row * 2 * MAX_COL + 2 * col) * gridSize;
             pm[row][col][1] = mat + (row * 2 * MAX_COL + 2 * col + 1) * gridSize;
         }
     }
 
-    for (size_t col = 0; col < MAX_COL; col++) {
-        for (size_t row = 0; row < MAX_ROW; row++) {
+    for (size_t row = 0; row < MAX_ROW; row++) {
+        for (size_t col = 0; col < MAX_COL; col++) {
             for (size_t v = 0; v < gridSize; v++) {
                 DataType re = pm[row][col][0][v] * ps[col][0][v] - pm[row][col][1][v] * ps[col][1][v];
                 DataType im = pm[row][col][0][v] * ps[col][1][v] + pm[row][col][1][v] * ps[col][0][v];
@@ -108,6 +209,7 @@ void TensorGrid_CMatrixVector(DataType *dest, DataType *mat, DataType *src, size
     }
 }
 
+#if (MAX_ROW == 3) && (MAX_COL == 3)
 void TensorGrid_CMatrixVector02(DataType *TGdes, DataType *TGmat, DataType *TGsrc, size_t gridSize)
 {
     DataPointer m00re = TGmat + (0 * 2 * MAX_COL + 0) * gridSize;
@@ -158,6 +260,7 @@ void TensorGrid_CMatrixVector02(DataType *TGdes, DataType *TGmat, DataType *TGsr
                    m22re[i] * vs2im[i] + m22im[i] * vs2re[i];
     }
 }
+#endif
 
 /**
  * @brief this metod has lower performancee than above

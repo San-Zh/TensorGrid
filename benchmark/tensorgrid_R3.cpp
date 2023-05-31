@@ -30,9 +30,9 @@ int main(int argc, char **argv)
     tranfer2TG(TGmat, mat, MAX_ROW * MAX_COL, GRID_VOLUME());
     // memset(TGdes, 0, MAX_ROW * GRID_VOLUME() * sizeof(DataType));
 #ifdef debug
-    check_diff(src, TGsrc, MAX_COL, GRID_VOLUME());
-    check_diff(mat, TGmat, MAX_ROW * MAX_COL, GRID_VOLUME());
-    // check_diff(des, TGdes, MAX_ROW, GRID_VOLUME());
+    diff_Ary_TGAry(src, TGsrc, MAX_COL, GRID_VOLUME());
+    diff_Ary_TGAry(mat, TGmat, MAX_ROW * MAX_COL, GRID_VOLUME());
+    // diff_Ary_TGAry(des, TGdes, MAX_ROW, GRID_VOLUME());
 #endif
 
     watcher.reset();
@@ -53,7 +53,7 @@ int main(int argc, char **argv)
     // TensorGrid_RMatrixVector03(TGdes, TGmat, TGsrc, GRID_VOLUME());
     double timeTGMV = watcher.use();
 
-    DataType diff = check_diff(des, TGdes, MAX_ROW, GRID_VOLUME());
+    DataType diff = diff_Ary_TGAry(des, TGdes, MAX_ROW, GRID_VOLUME());
     printf("Gemv: Acc:%6.2lf   RealAry%10.2e  TensorGrid %10.2e   diff%10.2e  GridSize %ld\n", timeMV / timeTGMV,
            timeMV, timeTGMV, diff, GRID_VOLUME());
 
