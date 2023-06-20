@@ -129,13 +129,13 @@ Tp diff_Ary_TGAry(Tp *A, Tp *TGA, size_t sizeTensor, size_t sizeGrid)
     return sum;
 }
 
-template <typename Tp>
-Tp diff_vector_norm2(Tp *A, Tp *B, size_t Size)
+template <typename Tp1, typename Tp2>
+Tp1 diff_vector_norm2(Tp1 *A, Tp2 *B, size_t Size)
 {
-    Tp *ptrA;
-    Tp *ptrB;
-    DataType diff = 0.0;
-    DataType res = 0.0;
+    Tp1 *ptrA;
+    Tp2 *ptrB;
+    Tp1 diff = 0.0;
+    Tp2 res = 0.0;
     // for (size_t i = 0; i < 4; i++){
     for (ptrA = A, ptrB = B; ptrA != A + Size; ptrA++, ptrB++) {
         diff = *ptrA - *ptrB;
@@ -145,4 +145,14 @@ Tp diff_vector_norm2(Tp *A, Tp *B, size_t Size)
 #endif
     }
     return res;
+}
+
+template <typename Tp1, typename Tp2>
+void xeqy(Tp1 *A, Tp2 *B, size_t Size)
+{
+    Tp1 *ptrA;
+    Tp2 *ptrB;
+    for (ptrA = A, ptrB = B; ptrA != A + Size; ptrA++, ptrB++) {
+        *ptrA = *ptrB;
+    }
 }

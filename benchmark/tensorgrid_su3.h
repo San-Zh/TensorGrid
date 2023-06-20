@@ -139,7 +139,8 @@ void TensorGrid_CXTY(DataType *dest, DataType *X, DataType *Y, size_t tensorSize
 /// @param mat
 /// @param src
 /// @param gridSize
-void ComplexAry_MatrixVector(ComplexPtr dest, ComplexPtr mat, ComplexPtr src, size_t gridSize)
+template <typename Tp>
+void ComplexAry_MatrixVector(std::complex<Tp> *dest, std::complex<Tp> *mat, std::complex<Tp> *src, size_t gridSize)
 {
     for (size_t v = 0; v < gridSize; v++) {
         for (size_t row = 0; row < MAX_ROW; row++) {
@@ -171,11 +172,12 @@ void ComplexAry_MatrixVector02(ComplexPtr dest, ComplexPtr mat, ComplexPtr src, 
     }
 }
 
-void TensorGrid_CMatrixVector(DataType *dest, DataType *mat, DataType *src, size_t gridSize)
+template <typename Tp>
+void TensorGrid_CMatrixVector(Tp *dest, Tp *mat, Tp *src, size_t gridSize)
 {
-    DataType *pd[MAX_ROW][2];
-    DataType *ps[MAX_COL][2];
-    DataType *pm[MAX_ROW][MAX_COL][2];
+    Tp *pd[MAX_ROW][2];
+    Tp *ps[MAX_COL][2];
+    Tp *pm[MAX_ROW][MAX_COL][2];
     // CVectorPtrRow pd;
     // CVectorPtrRow ps;
     // CMatrixPtr pm;
@@ -198,8 +200,8 @@ void TensorGrid_CMatrixVector(DataType *dest, DataType *mat, DataType *src, size
     for (size_t row = 0; row < MAX_ROW; row++) {
         for (size_t col = 0; col < MAX_COL; col++) {
             for (size_t v = 0; v < gridSize; v++) {
-                DataType re = pm[row][col][0][v] * ps[col][0][v] - pm[row][col][1][v] * ps[col][1][v];
-                DataType im = pm[row][col][0][v] * ps[col][1][v] + pm[row][col][1][v] * ps[col][0][v];
+                Tp re = pm[row][col][0][v] * ps[col][0][v] - pm[row][col][1][v] * ps[col][1][v];
+                Tp im = pm[row][col][0][v] * ps[col][1][v] + pm[row][col][1][v] * ps[col][0][v];
                 pd[row][0][v] += re;
                 pd[row][1][v] += im;
                 // *(pd[row][0] + v) += *(pm[row][col][0] + v) * *(ps[col][0] + v) - *(pm[row][col][1] + v) * *(ps[col][1] + v);

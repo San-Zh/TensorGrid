@@ -2,7 +2,7 @@
 export OMP_NUM_THREADS=1
 
 TENSOR="-DMAX_ROW=3 -DMAX_COL=3"
-# PREC="-DPRECISION=SINGLE"
+PREC="-DPRECISION=SINGLE"
 
 # GSIZE='-DSIZE' -mfma -mavx512vl core-avx2   -march=skylake-avx512
 # GCC8.2.0中关于向量化操作的选项有：
@@ -11,29 +11,30 @@ TENSOR="-DMAX_ROW=3 -DMAX_COL=3"
 # 前两个向量化选项默认情况下在-O3中已启用，这里不一一说明。
 
 #gnu
-SIMDFLAGS="-mfma -mavx512f" # -mavx512f" #  -funroll-loops -march=native  -ftree-loop-if-convert
+SIMDFLAGS="-mavx512f" #-ftree-vectorize" #-mavx512f" #-funroll-loops -march=native -ftree-loop-if-convert -DNORMAL_COMPLEX
 # "-ftree-loop-if-convert" -march=skylake-avx512 corei7-avx
 #llvm clang
 # SIMDFLAGS="-march=native -funroll-loops" # -Rpass-missed=loop-vectorize
 
 # CXXFLAG+="-c -g -Wa,-adlhn " # 汇编+源码
-CXXFLAG+="${SIMDFLAGS} -O0 "
+CXXFLAG+="${SIMDFLAGS} -O3"
 
 # CXXFLAG="-Ofast"
 
-CXX=g++
-# CXX=clang++
+# CXX=g++
+CXX=clang++
 
 CFILE="tensorgrid_su3.cpp"
 # CFILE="tensorgrid_R3.cpp"
 # CFILE="tensorgrid_cxypy.cpp"
 # CFILE="tensorgrid_rxypy.cpp"
 # CFILE="tensorgrid_aryio.cpp"
+# CFILE="tensorgrid_multiprec.cpp"
 
 echo "${CXX} ${CXXFLAG} ${TENSOR} ${PREC}  ${CFILE}"
 
 # Multiple=$(seq 1 1 64)
-Multiple=( 1 2 4 8 16 32 64 128 256 512 1024 2048 4096)
+Multiple=(1 2 4 8 16 32 64 128 256 512 1024 2048 4096)
 # Multiple=(2048)
 # Multiple=(16)
 echo "Multiple: ${Multiple[*]}"
@@ -42,7 +43,7 @@ echo "Multiple: ${Multiple[*]}"
 SizeBase=64
 echo "SizeBase: ${SizeBase}"
 
-for mul in ${Multiple[*]};do
-    ${CXX} ${CXXFLAG} ${PREC} ${TENSOR} ${CFILE} -DSIZE=$[${mul}*${SizeBase}]
+for mul in ${Multiple[*]}; do
+    ${CXX} ${CXXFLAG} ${PREC} ${TENSOR} ${CFILE} -DSIZE=$((${mul} * ${SizeBase}))
     ./a.out
 done
