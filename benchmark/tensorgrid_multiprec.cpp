@@ -39,43 +39,63 @@ int main(int argc, char **argv)
     memset(TGdesF, 0, 2 * MAX_ROW * GRID_VOLUME() * sizeof(DataTypeF));
 
     /////// CMatrix-Vector ////////
-    watcher.reset();
-#ifdef NORMAL_COMPLEX
-    ComplexAry_MatrixVector((std::complex<DataTypeD> *) TGdesD, (std::complex<DataTypeD> *) TGmatD,
-                            (std::complex<DataTypeD> *) TGsrcD, GRID_VOLUME());
-#else
-#if defined __AVX512F__
-    TensorGrid_CMatrixVector_avx512(TGdesD, TGmatD, TGsrcD, GRID_VOLUME());
-    // TensorGrid_CMatrixVector_avx512_expand(TGdesD, TGmatD, TGsrcD, GRID_VOLUME());
+    // {
+    //     watcher.reset();
+    //     ComplexAry_MatrixVector((std::complex<DataTypeD> *) TGdesD, (std::complex<DataTypeD> *) TGmatD,
+    //                             (std::complex<DataTypeD> *) TGsrcD, GRID_VOLUME());
+    //     double timeCMD0 = watcher.use();
+    //     watcher.reset();
+    //     ComplexAry_MatrixVector((std::complex<DataTypeF> *) TGdesF, (std::complex<DataTypeF> *) TGmatF,
+    //                             (std::complex<DataTypeF> *) TGsrcF, GRID_VOLUME());
+    //     // ComplexAry_MatrixVector(TGdesD, TGmatD, TGsrcD, GRID_VOLUME());
+    //     double timeCMF0 = watcher.use();
+
+    //     auto diffres = diff_vector_norm2(TGdesD, TGdesF, 2 * MAX_ROW * GRID_VOLUME());
+    //     printf("  Gemv(D/F): Acc%6.2lf |time D %8.2e F %8.2e | diff %8.2g | GridSize %ld (L%5.1lf)\n", timeCMD0 / timeCMF0,
+    //            timeCMD0, timeCMF0, diffres, GRID_VOLUME(),sqrt(sqrt(GRID_VOLUME())));
+    // }
+
+    // {
+    //     watcher.reset();
+    //     ComplexAry_MatrixVector(TGdesD, TGmatD, TGsrcD, GRID_VOLUME());
+    //     double timeCMD0 = watcher.use();
+    //     watcher.reset();
+    //     ComplexAry_MatrixVector(TGdesF, TGmatF, TGsrcF, GRID_VOLUME());
+    //     double timeCMF0 = watcher.use();
+    //     auto diffres = diff_vector_norm2(TGdesD, TGdesF, 2 * MAX_ROW * GRID_VOLUME());
+    //     printf("  Gemv(D/F): Acc%6.2lf |time D %8.2e F %8.2e | diff %8.2g | GridSize %ld (L%5.1lf)\n",
+    //            timeCMD0 / timeCMF0, timeCMD0, timeCMF0, diffres, GRID_VOLUME(), sqrt(sqrt(GRID_VOLUME())));
+    // }
+
+#if 1
+    {
+        watcher.reset();
+#ifdef __AVX512F__
+        TensorGrid_CMatrixVector_avx512(TGdesD, TGmatD, TGsrcD, GRID_VOLUME());
+        // TensorGrid_CMatrixVector_avx512_expand(TGdesD, TGmatD, TGsrcD, GRID_VOLUME());
 #elif defined __AVX__
-    TensorGrid_CMatrixVector_avx256(TGdesD, TGmatD, TGsrcD, GRID_VOLUME());
-    // TensorGrid_CMatrixVector_avx256_expand(TGdesD, TGmatD, TGsrcD, GRID_VOLUME());
-    // std::cout << "defined __AVX__" << std::endl;
+        TensorGrid_CMatrixVector_avx256(TGdesD, TGmatD, TGsrcD, GRID_VOLUME());
+        // TensorGrid_CMatrixVector_avx256_expand(TGdesD, TGmatD, TGsrcD, GRID_VOLUME());
 #else
-    TensorGrid_CMatrixVector(TGdesD, TGmatD, TGsrcD, GRID_VOLUME());
+        TensorGrid_CMatrixVector(TGdesD, TGmatD, TGsrcD, GRID_VOLUME());
 #endif
-#endif
-    double timeCMVD = watcher.use();
+        double timeCMVD = watcher.use();
 
-    watcher.reset();
-#ifdef NORMAL_COMPLEX
-    ComplexAry_MatrixVector((std::complex<DataTypeF> *) TGdesF, (std::complex<DataTypeF> *) TGmatF,
-                            (std::complex<DataTypeF> *) TGsrcF, GRID_VOLUME());
-#else
-
-#if defined __AVX512F__
-    TensorGrid_CMatrixVector_avx512(TGdesF, TGmatF, TGsrcF, GRID_VOLUME());
+        watcher.reset();
+#ifdef __AVX512F__
+        TensorGrid_CMatrixVector_avx512(TGdesF, TGmatF, TGsrcF, GRID_VOLUME());
 #elif defined __AVX__
-    TensorGrid_CMatrixVector_avx256(TGdesF, TGmatF, TGsrcF, GRID_VOLUME());
+        TensorGrid_CMatrixVector_avx256(TGdesF, TGmatF, TGsrcF, GRID_VOLUME());
 #else
-    TensorGrid_CMatrixVector(TGdesF, TGmatF, TGsrcF, GRID_VOLUME());
+        TensorGrid_CMatrixVector(TGdesF, TGmatF, TGsrcF, GRID_VOLUME());
 #endif
-#endif
-    double timeCMVF = watcher.use();
+        double timeCMVF = watcher.use();
 
-    auto diffres = diff_vector_norm2(TGdesD, TGdesF, 2 * MAX_ROW * GRID_VOLUME());
-    printf("  Gemv(D/F): Acc%6.2lf |time D %8.2e F %8.2e | diff %8.2g | GridSize %ld\n", timeCMVD / timeCMVF, timeCMVD,
-           timeCMVF, diffres, GRID_VOLUME());
+        auto diffres = diff_vector_norm2(TGdesD, TGdesF, 2 * MAX_ROW * GRID_VOLUME());
+        printf("  Gemv(D/F): Acc%6.2lf |time D %8.2e F %8.2e | diff %8.2g | GridSize %ld (L %.0lf)\n",
+               timeCMVD / timeCMVF, timeCMVD, timeCMVF, diffres, GRID_VOLUME(), sqrt(sqrt(GRID_VOLUME())));
+    }
+#endif
 
     free(TGmatD);
     free(TGsrcD);

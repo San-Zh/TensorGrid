@@ -61,10 +61,11 @@ int main(int argc, char **argv)
 #if 1
     {
         watcher.reset();
-        ComplexAry_MatrixVector(Cdes, CMat, Csrc, GRID_VOLUME());
+        // ComplexAry_MatrixVector(Cdes, CMat, Csrc, GRID_VOLUME());
         // ComplexAry_MatrixVector02(Cdes, CMat, Csrc, GRID_VOLUME());
         // TensorGrid_CMatrixVector(TGdes, TGmat, TGsrc, GRID_VOLUME());
         // TensorGrid_CMatrixVector(TGB, TGMAT, TGA, GRID_VOLUME());
+        ComplexAry_MatrixVector(des, mat, src, GRID_VOLUME());
         double timeCMV0 = watcher.use();
 
         // watcher.reset();

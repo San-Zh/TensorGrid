@@ -151,6 +151,52 @@ void ComplexAry_MatrixVector(std::complex<Tp> *dest, std::complex<Tp> *mat, std:
     }
 }
 
+void ComplexAry_MatrixVector(double *dest, double *mat, double *src, size_t gridSize)
+{
+    for (size_t v = 0; v < gridSize; v++) {
+        for (size_t row = 0; row < MAX_ROW; row++) {
+            double res_re = 0.0;
+            double res_im = 0.0;
+            double vsrc[MAX_COL][2];
+            for (size_t col = 0; col < MAX_COL; col++) {
+                vsrc[col][0] = src[v * 2 * MAX_COL + 2 * col + 0];
+                vsrc[col][1] = src[v * 2 * MAX_COL + 2 * col + 1];
+            }
+            for (size_t col = 0; col < MAX_COL; col++) {
+                double mat_re = mat[v * 2 * MAX_ROW * MAX_COL + row * 2 * MAX_COL + 2 * col + 0];
+                double mat_im = mat[v * 2 * MAX_ROW * MAX_COL + row * 2 * MAX_COL + 2 * col + 1];
+                res_re += mat_re * vsrc[col][0] - mat_im * vsrc[col][1];
+                res_im += mat_re * vsrc[col][1] + mat_im * vsrc[col][0];
+            }
+            dest[v * 2 * MAX_ROW + 2 * row + 0] = res_re;
+            dest[v * 2 * MAX_ROW + 2 * row + 1] = res_im;
+        }
+    }
+}
+
+void ComplexAry_MatrixVector(float *dest, float *mat, float *src, size_t gridSize)
+{
+    for (size_t v = 0; v < gridSize; v++) {
+        for (size_t row = 0; row < MAX_ROW; row++) {
+            float res_re = 0.0;
+            float res_im = 0.0;
+            float vsrc[MAX_COL][2];
+            for (size_t col = 0; col < MAX_COL; col++) {
+                vsrc[col][0] = src[v * 2 * MAX_COL + 2 * col + 0];
+                vsrc[col][1] = src[v * 2 * MAX_COL + 2 * col + 1];
+            }
+            for (size_t col = 0; col < MAX_COL; col++) {
+                float mat_re = mat[v * 2 * MAX_ROW * MAX_COL + row * 2 * MAX_COL + 2 * col + 0];
+                float mat_im = mat[v * 2 * MAX_ROW * MAX_COL + row * 2 * MAX_COL + 2 * col + 1];
+                res_re += mat_re * vsrc[col][0] - mat_im * vsrc[col][1];
+                res_im += mat_re * vsrc[col][1] + mat_im * vsrc[col][0];
+            }
+            dest[v * 2 * MAX_ROW + 2 * row + 0] = res_re;
+            dest[v * 2 * MAX_ROW + 2 * row + 1] = res_im;
+        }
+    }
+}
+
 void ComplexAry_MatrixVector02(ComplexPtr dest, ComplexPtr mat, ComplexPtr src, size_t gridSize)
 {
     /// the lager grid volume is, the lower performance than the base ComplexAry_MatrixVector()
