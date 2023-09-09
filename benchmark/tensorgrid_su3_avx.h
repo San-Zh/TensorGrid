@@ -38,20 +38,6 @@ void TensorGrid_CMatrixVector_avx256(double *dest, double *mat, double *src, siz
                 __m256d vc_im = _mm256_load_pd(ps[col][1] + v);
                 vr_re = _mm256_add_pd(vr_re, _mm256_sub_pd(_mm256_mul_pd(mrc_re, vc_re), _mm256_mul_pd(mrc_im, vc_im)));
                 vr_im = _mm256_add_pd(vr_im, _mm256_add_pd(_mm256_mul_pd(mrc_re, vc_im), _mm256_mul_pd(mrc_im, vc_re)));
-                // res_re = _mm256_fmadd_pd(mrc_re, vc_re, res_re);
-                // res_re = _mm256_sub_pd(res_re, _mm256_mul_pd(mrc_im, vc_im));
-                // res_im = _mm256_fmadd_pd(mrc_re, vc_im, res_im);
-                // res_im = _mm256_fmadd_pd(mrc_im, vc_re, res_im);
-
-                // __m256d tmp_re = _mm256_mul_pd(mrc_re, vc_re);
-                // __m256d tmp_im = _mm256_mul_pd(mrc_im, vc_im);
-                // tmp_re = _mm256_sub_pd(tmp_re, tmp_im);
-                // res_re = _mm256_add_pd(res_re, tmp_re);
-
-                // tmp_re = _mm256_mul_pd(mrc_re, vc_im);
-                // tmp_im = _mm256_mul_pd(mrc_im, vc_re);
-                // tmp_im = _mm256_add_pd(tmp_re, tmp_im);
-                // res_re = _mm256_add_pd(res_re, tmp_im);
             }
             _mm256_store_pd(pd[row][0] + v, vr_re);
             _mm256_store_pd(pd[row][1] + v, vr_im);
@@ -143,8 +129,8 @@ void TensorGrid_CMatrixVector_avx256_expand(double *dest, double *mat, double *s
 
         for (size_t row = 0; row < MAX_ROW; row++) {
             // for (size_t col = 0; col < MAX_COL; col++) {
-           __m256d vr_re = _mm256_setzero_pd();
-           __m256d vr_im = _mm256_setzero_pd();
+            __m256d vr_re = _mm256_setzero_pd();
+            __m256d vr_im = _mm256_setzero_pd();
             __m256d mr0_re = _mm256_load_pd(&(pm[row][0][0][v]));
             __m256d mr0_im = _mm256_load_pd(&(pm[row][0][1][v]));
             __m256d mr1_re = _mm256_load_pd(&(pm[row][1][0][v]));
@@ -271,10 +257,6 @@ void TensorGrid_CMatrixVector_avx512(double *dest, double *mat, double *src, siz
                 __m512d vc_im = _mm512_load_pd(&ps[col][1][v]);
                 vr_re = _mm512_add_pd(vr_re, _mm512_sub_pd(_mm512_mul_pd(mrc_re, vc_re), _mm512_mul_pd(mrc_im, vc_im)));
                 vr_im = _mm512_add_pd(vr_im, _mm512_add_pd(_mm512_mul_pd(mrc_re, vc_im), _mm512_mul_pd(mrc_im, vc_re)));
-                // vr_re = _mm512_fmadd_pd(mrc_re, vc_re, vr_re);
-                // vr_re = _mm512_fmsub_pd(mrc_im, vc_im, vr_re);
-                // vr_im = _mm512_fmadd_pd(mrc_re, vc_im, vr_im);
-                // vr_im = _mm512_fmadd_pd(mrc_im, vc_re, vr_im);
             }
             _mm512_store_pd(&pd[row][0][v], vr_re);
             _mm512_store_pd(&pd[row][1][v], vr_im);
@@ -314,10 +296,6 @@ void TensorGrid_CMatrixVector_avx512(float *dest, float *mat, float *src, size_t
                 __m512 vc_im = _mm512_load_ps(&ps[col][1][v]);
                 vr_re = _mm512_add_ps(vr_re, _mm512_sub_ps(_mm512_mul_ps(mrc_re, vc_re), _mm512_mul_ps(mrc_im, vc_im)));
                 vr_im = _mm512_add_ps(vr_im, _mm512_add_ps(_mm512_mul_ps(mrc_re, vc_im), _mm512_mul_ps(mrc_im, vc_re)));
-                // vr_re = _mm512_fmadd_ps(mrc_re, vc_re, vr_re);
-                // vr_re = _mm512_fmsub_ps(mrc_im, vc_im, vr_re);
-                // vr_im = _mm512_fmadd_ps(mrc_re, vc_im, vr_im);
-                // vr_im = _mm512_fmadd_ps(mrc_im, vc_re, vr_im);
             }
             _mm512_store_ps(&pd[row][0][v], vr_re);
             _mm512_store_ps(&pd[row][1][v], vr_im);
@@ -344,34 +322,28 @@ void TensorGrid_CMatrixVector_avx512_expand(double *dest, double *mat, double *s
             pm[row][col][1] = mat + (row * 2 * MAX_COL + 2 * col + 1) * gridSize;
         }
     }
+    __m512d ret[MAX_ROW][2];
+    for (size_t row = 0; row < MAX_ROW; row++) {
+        ret[row][0] = _mm512_setzero_pd();
+        ret[row][1] = _mm512_setzero_pd();
+    }
 
     for (size_t v = 0; v < gridSize; v += 8) {
-        __m512d vc0_re = _mm512_load_pd(&(ps[0][0][v]));
-        __m512d vc0_im = _mm512_load_pd(&(ps[0][1][v]));
-        __m512d vc1_re = _mm512_load_pd(&(ps[1][0][v]));
-        __m512d vc1_im = _mm512_load_pd(&(ps[1][1][v]));
-        __m512d vc2_re = _mm512_load_pd(&(ps[2][0][v]));
-        __m512d vc2_im = _mm512_load_pd(&(ps[2][1][v]));
-
+        for (size_t col = 0; col < MAX_COL; col++) {
+            __m512d vc_re = _mm512_load_pd(&ps[col][0][v]);
+            __m512d vc_im = _mm512_load_pd(&ps[col][1][v]);
+            for (size_t row = 0; row < MAX_ROW; row++) {
+                __m512d mrc_re = _mm512_load_pd(&pm[row][col][0][v]);
+                __m512d mrc_im = _mm512_load_pd(&pm[row][col][1][v]);
+                ret[row][0] = _mm512_add_pd(_mm512_sub_pd(_mm512_mul_pd(mrc_re, vc_re), _mm512_mul_pd(mrc_im, vc_im)),
+                                            ret[row][0]);
+                ret[row][1] = _mm512_add_pd(_mm512_add_pd(_mm512_mul_pd(mrc_re, vc_im), _mm512_mul_pd(mrc_im, vc_re)),
+                                            ret[row][1]);
+            }
+        }
         for (size_t row = 0; row < MAX_ROW; row++) {
-            // for (size_t col = 0; col < MAX_COL; col++) {
-            __m512d vr_re = _mm512_setzero_pd();
-            __m512d vr_im = _mm512_setzero_pd();
-            __m512d mr0_re = _mm512_load_pd(&(pm[row][0][0][v]));
-            __m512d mr0_im = _mm512_load_pd(&(pm[row][0][1][v]));
-            __m512d mr1_re = _mm512_load_pd(&(pm[row][1][0][v]));
-            __m512d mr1_im = _mm512_load_pd(&(pm[row][1][1][v]));
-            __m512d mr2_re = _mm512_load_pd(&(pm[row][2][0][v]));
-            __m512d mr2_im = _mm512_load_pd(&(pm[row][2][1][v]));
-            vr_re = _mm512_add_pd(vr_re, _mm512_sub_pd(_mm512_mul_pd(mr0_re, vc0_re), _mm512_mul_pd(mr0_im, vc0_im)));
-            vr_im = _mm512_add_pd(vr_im, _mm512_add_pd(_mm512_mul_pd(mr0_re, vc0_im), _mm512_mul_pd(mr0_im, vc0_re)));
-            vr_re = _mm512_add_pd(vr_re, _mm512_sub_pd(_mm512_mul_pd(mr1_re, vc1_re), _mm512_mul_pd(mr1_im, vc1_im)));
-            vr_im = _mm512_add_pd(vr_im, _mm512_add_pd(_mm512_mul_pd(mr1_re, vc1_im), _mm512_mul_pd(mr1_im, vc1_re)));
-            vr_re = _mm512_add_pd(vr_re, _mm512_sub_pd(_mm512_mul_pd(mr2_re, vc2_re), _mm512_mul_pd(mr2_im, vc2_im)));
-            vr_im = _mm512_add_pd(vr_im, _mm512_add_pd(_mm512_mul_pd(mr2_re, vc2_im), _mm512_mul_pd(mr2_im, vc2_re)));
-            _mm512_store_pd((pd[row][0] + v), vr_re);
-            _mm512_store_pd((pd[row][1] + v), vr_im);
-            // }
+            _mm512_store_pd(&pd[row][0][v], ret[row][0]);
+            _mm512_store_pd(&pd[row][1][v], ret[row][1]);
         }
     }
 }

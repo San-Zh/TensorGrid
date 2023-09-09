@@ -23,7 +23,7 @@ using std::size_t;
  *
  * @tparam NumAxes the number of axes of the Geometry
  */
-template <size_t NumAxes>
+template <unsigned int NumAxes>
 class Geometry {
  private:
   DataType _data[NumAxes] = {0};
@@ -33,7 +33,6 @@ class Geometry {
   typedef DataType *pointer;
   typedef DataType DataVect[NumAxes];
   enum { numAxes = NumAxes };
-  // typedef size_t VolumeType;
 
  public:
   ///// This constructor is allowed to create a Greometry<NumAexs> with a vector
