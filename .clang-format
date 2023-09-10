@@ -16,26 +16,39 @@ AlignConsecutiveAssignments: true
 AlignConsecutiveDeclarations: true
 
 # 用于在使用反斜杠换行中对齐反斜杠的选项,换行符号左对齐
-# AlignEscapedNewlines: Left
-AlignEscapedNewlinesLeft: true
-
-AlignConsecutiveAssignments: true
+; # AlignEscapedNewlines: Left
+; AlignEscapedNewlinesLeft: true
 
 # 水平对齐二元和三元表达式的操作数
 AlignOperands: true # Align
 
 # 对齐连续的尾随的注释
 AlignTrailingComments: true
+
+# 允许函数声明的所有参数在放在下一行
 AllowAllParametersOfDeclarationOnNextLine: true
+
+# 允许短的块放在同一行
 AllowShortBlocksOnASingleLine: true
+# 允许短的case标签放在同一行
 AllowShortCaseLabelsOnASingleLine: false
-AllowShortFunctionsOnASingleLine:  true #InlineOnly
+# 允许短的函数放在同一行: None, InlineOnly(定义在类中), Empty(空函数), Inline(定义在类中，空函数), All
+AllowShortFunctionsOnASingleLine: All
+# 允许短的if语句保持在同一行
 AllowShortIfStatementsOnASingleLine: true 
+# 允许短的循环保持在同一行
 AllowShortLoopsOnASingleLine: true
+# 总是在定义返回类型后换行(deprecated)
 AlwaysBreakAfterDefinitionReturnType: None
+
 AlwaysBreakAfterReturnType: None
 AlwaysBreakBeforeMultilineStrings: false
-AlwaysBreakTemplateDeclarations: true
+
+# 总是在template声明后换行
+AlwaysBreakTemplateDeclarations: false
+
+AlwaysBreakTemplateDeclarations:
+
 BinPackArguments: true
 BinPackParameters: true
 BraceWrapping:   
