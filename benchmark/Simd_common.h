@@ -9,112 +9,97 @@
  * 
  */
 
-#if not defined(ENABLE_SIMD)
-struct vRealF {
-    float v[16];
-};
+#pragma once
 
-struct vRealD {
-    double v[8];
-};
+// #include <iostream>
 
 #define _for(i, _N, e) \
     for (int i = 0; i < _N; i++) { e; }
 
+
+// clang-format off
+template <typename Tp> struct vReal;
+template <> struct vReal<float>  { float  vec[16]; enum{vlength = 16}; };
+template <> struct vReal<double> { double vec[8];  enum{vlength = 8 }; };
+// clang-format on
+
+// tyepdef
+typedef vReal<float>  vRealF;
+typedef vReal<double> vRealD;
+
 // load
-static inline vRealF SimdLoad(const float *_p)
+template <typename Tp>
+static inline vReal<Tp> SimdLoad(const Tp *_p)
 {
-    vRealF ret;
-    _for(i, 16, ret.v[i] = _p[i]);
+    vReal<Tp> ret;
+    _for(i, vReal<Tp>::vlength, ret.vec[i] = _p[i]);
     return ret;
 }
 
-static inline vRealD SimdLoad(const double *_p)
+// load
+template <typename Tp>
+static inline void SimdLoad(vReal<Tp> &a, const Tp *_p)
 {
-    vRealD ret;
-    _for(i, 8, ret.v[i] = _p[i]);
-    return ret;
+    _for(i, vReal<Tp>::vlength, a.vec[i] = _p[i]);
 }
 
 // store
-static inline void SimdStore(float *_p, vRealF a)
+template <typename Tp>
+static inline void SimdStore(float *_p, const vReal<Tp> &a)
 {
-    vRealF ret;
-    _for(i, 16, _p[i] = a.v[i]);
-}
-static inline void SimdStore(double *_p, vRealD a)
-{
-    vRealD ret;
-    _for(i, 8, _p[i] = a.v[i]);
+    _for(i, vReal<Tp>::vlength, _p[i] = a.vec[i]);
 }
 
 // add
-static inline vRealF SimdAdd(vRealF a, vRealF b)
+template <typename Tp>
+static inline vReal<Tp> SimdSetzero(const vReal<Tp> &a, const vReal<Tp> b)
 {
-    vRealF ret;
-    _for(i, 16, ret.v[i] = a.v[i] + b.v[i]);
+    vReal<Tp> ret;
+    _for(i, vReal<Tp>::vlength, ret.vec[i] = 0);
     return ret;
 }
-static inline vRealD SimdAdd(vRealD a, vRealD b)
+
+// add
+template <typename Tp>
+static inline vReal<Tp> SimdAdd(const vReal<Tp> &a, const vReal<Tp> b)
 {
-    vRealD ret;
-    _for(i, 8, ret.v[i] = a.v[i] + b.v[i]);
+    vReal<Tp> ret;
+    _for(i, vReal<Tp>::vlength, ret.vec[i] = a.vec[i] + b.vec[i]);
+    return ret;
 }
 
 // sub
-static inline vRealF SimdSub(vRealF a, vRealF b)
+template <typename Tp>
+static inline vReal<Tp> SimdSub(const vReal<Tp> &a, const vReal<Tp> b)
 {
-    vRealF ret;
-    _for(i, 16, ret.v[i] = a.v[i] - b.v[i]);
-    return ret;
-}
-static inline vRealD SimdAdd(vRealD a, vRealD b)
-{
-    vRealD ret;
-    _for(i, 8, ret.v[i] = a.v[i] - b.v[i]);
+    vReal<Tp> ret;
+    _for(i, vReal<Tp>::vlength, ret.vec[i] = a.vec[i] - b.vec[i]);
     return ret;
 }
 
 // mul
-static inline vRealF SimdMul(vRealF a, vRealF b)
+template <typename Tp>
+static inline vReal<Tp> SimdMul(const vReal<Tp> &a, const vReal<Tp> b)
 {
-    vRealF ret;
-    _for(i, 16, ret.v[i] = a.v[i] * b.v[i]);
-    return ret;
-}
-static inline vRealD SimdMul(vRealD a, vRealD b)
-{
-    vRealD ret;
-    _for(i, 8, ret.v[i] = a.v[i] * b.v[i]);
+    vReal<Tp> ret;
+    _for(i, vReal<Tp>::vlength, ret.vec[i] = a.vec[i] * b.vec[i]);
     return ret;
 }
 
 // fmadd  dst = a*b+c
-static inline vRealF SimdFmadd(vRealF a, vRealF b, vRealF c)
+template <typename Tp>
+static inline vReal<Tp> SimdFmadd(const vReal<Tp> &a, const vReal<Tp> b, const vReal<Tp> &c)
 {
-    vRealF ret;
-    _for(i, 16, ret.v[i] = a.v[i] * b.v[i] + c.v[i]);
-    return ret;
-}
-static inline vRealD SimdFmadd(vRealD a, vRealD b, vRealD c)
-{
-    vRealD ret;
-    _for(i, 8, ret.v[i] = a.v[i] * b.v[i] + c.v[i]);
+    vReal<Tp> ret;
+    _for(i, vReal<Tp>::vlength, ret.vec[i] = a.vec[i] * b.vec[i] + c.vec[i]);
     return ret;
 }
 
 // fmsub  dst = a*b-c
-static inline vRealF SimdFmsub(vRealF a, vRealF b, vRealF c)
+template <typename Tp>
+static inline vReal<Tp> SimdFmsub(const vReal<Tp> &a, const vReal<Tp> b, const vReal<Tp> &c)
 {
-    vRealF ret;
-    _for(i, 16, ret.v[i] = a.v[i] * b.v[i] - c.v[i]);
+    vReal<Tp> ret;
+    _for(i, vReal<Tp>::vlength, ret.vec[i] = a.vec[i] * b.vec[i] - c.vec[i]);
     return ret;
 }
-static inline vRealD SimdFmsub(vRealD a, vRealD b, vRealD c)
-{
-    vRealD ret;
-    _for(i, 8, ret.v[i] = a.v[i] * b.v[i] - c.v[i]);
-    return ret;
-}
-
-#endif

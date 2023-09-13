@@ -9,15 +9,18 @@ AccessModifierOffset: -2
 # 左括号(左圆括号、左尖括号、左方括号)后的对齐: Align, DontAlign, AlwaysBreak(总是在左括号后换行)
 AlignAfterOpenBracket: Align
 
-# 连续赋值时，对齐所有等号
-AlignConsecutiveAssignments: true
+# 连续赋值时，对齐所有等号, true AcrossComments
+AlignConsecutiveAssignments: AcrossComments
 
-# 连续声明时，对齐所有声明的变量名
-AlignConsecutiveDeclarations: true
+# 连续声明时，对齐所有声明的变量名  # true AcrossComments
+AlignConsecutiveDeclarations: AcrossComments 
 
-# 用于在使用反斜杠换行中对齐反斜杠的选项,换行符号左对齐
-; # AlignEscapedNewlines: Left
-; AlignEscapedNewlinesLeft: true
+# 连续宏定义对齐
+AlignConsecutiveMacros: true
+
+# 用于在使用反斜杠换行中对齐反斜杠的选项,换行符号左对齐; 
+# AlignEscapedNewlines: Left
+AlignEscapedNewlinesLeft: true
 
 # 水平对齐二元和三元表达式的操作数
 AlignOperands: true # Align
@@ -25,32 +28,41 @@ AlignOperands: true # Align
 # 对齐连续的尾随的注释
 AlignTrailingComments: true
 
+# 允许参数在下一行上,如果函数调用或带括号的初始化列表不在一行中，则允许将所有参数放到下一行，即使BinPackArguments为false
+AllowAllArgumentsOnNextLine: true
+
 # 允许函数声明的所有参数在放在下一行
 AllowAllParametersOfDeclarationOnNextLine: true
 
-# 允许短的块放在同一行
+# 允许短的块放在同一行, 根据情况，while (true) { continue;}可以放在单行上,可以是以下值：Never，Empty，Always。
 AllowShortBlocksOnASingleLine: true
 # 允许短的case标签放在同一行
 AllowShortCaseLabelsOnASingleLine: false
+# 允许短枚举在单行上
+AllowShortEnumsOnASingleLine: true
 # 允许短的函数放在同一行: None, InlineOnly(定义在类中), Empty(空函数), Inline(定义在类中，空函数), All
 AllowShortFunctionsOnASingleLine: All
-# 允许短的if语句保持在同一行
+# 允许短的if语句保持在同一行, Never，WithoutElse，OnlyFirstIf，AllIfsAndElse
 AllowShortIfStatementsOnASingleLine: true 
+# 允许短匿Lambda函数在单行上,只针对形式auto lambda []() {return 0;}
+AllowShortLambdasOnASingleLine: true
 # 允许短的循环保持在同一行
 AllowShortLoopsOnASingleLine: true
-# 总是在定义返回类型后换行(deprecated)
-AlwaysBreakAfterDefinitionReturnType: None
 
+# 总是在定义返回类型后换行(deprecated),以下的选项：None，All，TopLevel，AllDefinitions，TopLevelDefinitions
+# None在返回类型之后自动断行， PenaltyReturnTypeOnItsOwnLine需要考虑在内
 AlwaysBreakAfterReturnType: None
+# 多行字符串断行,在多行字符串字面量时之前断行. 如下(只有当字符串需要换行时，才会生效)：
 AlwaysBreakBeforeMultilineStrings: false
+# 模板声明断行,有三个选项：No，MultiLine，Yes; No不会强制在模板声明处断行，需要考虑 PenaltyBreakTemplateDeclaration。
+AlwaysBreakTemplateDeclarations: Yes
 
-# 总是在template声明后换行
-AlwaysBreakTemplateDeclarations: false
-
-AlwaysBreakTemplateDeclarations:
+# 属性宏. 应该被解释为属性/限定符而不是标识符的字符串向量。这对于语言扩展或静态分析器注释非常有用
+AttributeMacros: ['__capability', '__output', '__ununsed']
 
 BinPackArguments: true
 BinPackParameters: true
+# 大括号换行风格. 控制单独的大括号换行情况。
 BraceWrapping:   
   AfterClass:      false
   AfterControlStatement: false
@@ -77,7 +89,7 @@ BreakBeforeTernaryOperators: true
 BreakConstructorInitializersBeforeComma: false
 BreakAfterJavaFieldAnnotations: false
 BreakStringLiterals: true
-ColumnLimit:     120
+ColumnLimit:     100
 CommentPragmas:  '^ IWYU pragma:'
 ConstructorInitializerAllOnOneLineOrOnePerLine: true
 ConstructorInitializerIndentWidth: 4

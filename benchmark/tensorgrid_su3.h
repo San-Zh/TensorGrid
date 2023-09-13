@@ -10,34 +10,26 @@
 template <typename Tp>
 void AryIO(Tp *dest, Tp *src, size_t size)
 {
-    for (size_t v = 0; v < size; v++) {
-        dest[v] = src[v];
-    }
+    for (size_t v = 0; v < size; v++) { dest[v] = src[v]; }
 }
 
 template <typename Tp>
 void AryRead(Tp *src, size_t size)
 {
     Tp tmp;
-    for (size_t v = 0; v < size; v++) {
-        tmp = src[v];
-    }
+    for (size_t v = 0; v < size; v++) { tmp = src[v]; }
 }
 
 template <typename Tp>
 void AryWrite(Tp *dest, size_t size)
 {
-    for (size_t v = 0; v < size; v++) {
-        dest[v] = 1.0;
-    }
+    for (size_t v = 0; v < size; v++) { dest[v] = 1.0; }
 }
 
 template <typename TF>
 void ComplexAry_CXYpY(std::complex<TF> *dest, std::complex<TF> *X, std::complex<TF> *Y, size_t size)
 {
-    for (size_t v = 0; v < size; v++) {
-        dest[v] = X[v] * Y[v] + Y[v];
-    }
+    for (size_t v = 0; v < size; v++) { dest[v] = X[v] * Y[v] + Y[v]; }
 }
 
 /**
@@ -55,15 +47,15 @@ void TensorGrid_CXYpY(TF *dest, TF *X, TF *Y, size_t tensorSize, size_t gridSize
 {
     TF re, im;
     for (size_t its = 0; its < tensorSize; its++) {
-        TF *Xre = X + its * 2 * gridSize;
-        TF *Xim = X + (its * 2 + 1) * gridSize;
-        TF *Yre = Y + its * 2 * gridSize;
-        TF *Yim = Y + (its * 2 + 1) * gridSize;
+        TF *Xre    = X + its * 2 * gridSize;
+        TF *Xim    = X + (its * 2 + 1) * gridSize;
+        TF *Yre    = Y + its * 2 * gridSize;
+        TF *Yim    = Y + (its * 2 + 1) * gridSize;
         TF *destre = dest + its * 2 * gridSize;
         TF *destim = dest + (its * 2 + 1) * gridSize;
         for (size_t v = 0; v < gridSize; v++) {
-            re = Xre[v] * Yre[v] - Xim[v] * Yim[v] + Yre[v];
-            im = Xre[v] * Yim[v] + Xim[v] * Yre[v] + Yim[v];
+            re        = Xre[v] * Yre[v] - Xim[v] * Yim[v] + Yre[v];
+            im        = Xre[v] * Yim[v] + Xim[v] * Yre[v] + Yim[v];
             destre[v] = re;
             destim[v] = im;
         }
@@ -71,8 +63,8 @@ void TensorGrid_CXYpY(TF *dest, TF *X, TF *Y, size_t tensorSize, size_t gridSize
 }
 
 template <typename TF>
-void ComplexAry_CXTY(std::complex<TF> *dest, std::complex<TF> *X, std::complex<TF> *Y, size_t tensorSize,
-                     size_t gridSize)
+void ComplexAry_CXTY(std::complex<TF> *dest, std::complex<TF> *X, std::complex<TF> *Y,
+                     size_t tensorSize, size_t gridSize)
 {
     for (size_t v = 0; v < gridSize; v++) {
         for (size_t its = 0; its < tensorSize; its++) {
@@ -86,10 +78,10 @@ void TensorGrid_CXTY(TF *dest, TF *X, TF *Y, size_t tensorSize, size_t gridSize)
 {
     TF re, im;
     for (size_t its = 0; its < tensorSize; its++) {
-        TF *Xre = X + (its * 2) * gridSize;
-        TF *Xim = X + (its * 2 + 1) * gridSize;
-        TF *Yre = Y + (its * 2) * gridSize;
-        TF *Yim = Y + (its * 2 + 1) * gridSize;
+        TF *Xre    = X + (its * 2) * gridSize;
+        TF *Xim    = X + (its * 2 + 1) * gridSize;
+        TF *Yre    = Y + (its * 2) * gridSize;
+        TF *Yim    = Y + (its * 2 + 1) * gridSize;
         TF *destre = dest;
         TF *destim = dest + gridSize;
         for (size_t v = 0; v < gridSize; v++) {
@@ -108,20 +100,20 @@ void TensorGrid_CXTY(TF *dest, TF *X, TF *Y, size_t tensorSize, size_t gridSize)
 /// @param src
 /// @param gridSize
 template <typename Tp>
-void ComplexAry_MatrixVector(std::complex<Tp> *dest, const std::complex<Tp> *mat, const std::complex<Tp> *src,
-                             size_t gridSize)
+void ComplexAry_MatrixVector(std::complex<Tp> *dest, const std::complex<Tp> *mat,
+                             const std::complex<Tp> *src, size_t gridSize)
 {
 #ifdef HAVE_BLAS
     std::complex<Tp> alpha(1, 0), beta(0, 0);
     if (sizeof(Tp) == 4) {
         for (size_t v = 0; v < gridSize; v++) {
-            cblas_cgemv(CblasRowMajor, CblasNoTrans, MAX_COL, MAX_ROW, &alpha, &mat[9 * v], 3, &src[3 * v], 1, &beta,
-                        &dest[3 * v], 1);
+            cblas_cgemv(CblasRowMajor, CblasNoTrans, MAX_COL, MAX_ROW, &alpha, &mat[9 * v], 3,
+                        &src[3 * v], 1, &beta, &dest[3 * v], 1);
         }
     } else if (sizeof(Tp) == 8) {
         for (size_t v = 0; v < gridSize; v++) {
-            cblas_zgemv(CblasRowMajor, CblasNoTrans, MAX_COL, MAX_ROW, &alpha, &mat[9 * v], 3, &src[3 * v], 1, &beta,
-                        &dest[3 * v], 1);
+            cblas_zgemv(CblasRowMajor, CblasNoTrans, MAX_COL, MAX_ROW, &alpha, &mat[9 * v], 3,
+                        &src[3 * v], 1, &beta, &dest[3 * v], 1);
         }
     }
 #else
@@ -139,18 +131,18 @@ void ComplexAry_MatrixVector(std::complex<Tp> *dest, const std::complex<Tp> *mat
 }
 
 template <typename Tp>
-void ComplexAry_MatrixVector02(std::complex<Tp> *dest, std::complex<Tp> *mat, std::complex<Tp> *src, size_t gridSize)
+void ComplexAry_MatrixVector02(std::complex<Tp> *dest, std::complex<Tp> *mat, std::complex<Tp> *src,
+                               size_t gridSize)
 {
     for (size_t v = 0; v < gridSize; v++) {
         std::complex<Tp> res[MAX_ROW] = {0.0};
         for (size_t col = 0; col < MAX_COL; col++) {
             for (size_t row = 0; row < MAX_ROW; row++) {
-                res[row] += mat[v * MAX_ROW * MAX_COL + row * MAX_COL + col] * src[v * MAX_COL + col];
+                res[row] +=
+                    mat[v * MAX_ROW * MAX_COL + row * MAX_COL + col] * src[v * MAX_COL + col];
             }
         }
-        for (size_t row = 0; row < MAX_ROW; row++) {
-            dest[v * MAX_ROW + row] = res[row];
-        }
+        for (size_t row = 0; row < MAX_ROW; row++) { dest[v * MAX_ROW + row] = res[row]; }
     }
 }
 
