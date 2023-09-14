@@ -9,14 +9,18 @@
  * 
  */
 
+// clang-format off
+
 #pragma once
+
+#pragma message( "\"Simd_avx512.h\"  included")
 
 #include <immintrin.h>
 
 // typedef __m512  vRealF;
 // typedef __m512d vRealD;
 
-// clang-format off
+// pack
 template <typename Tp> struct vReal;
 template <> struct vReal<float>;
 template <> struct vReal<double>;
@@ -25,6 +29,7 @@ template <>
 struct vReal<float>
 {
     __m512 vec;
+    enum { NumElem = 16 };
     // void load(const float *_p) { vec = _mm512_load_ps(_p); }
     // void store(float *_p) { _mm512_store_ps(_p, vec); }
     // void setzero() { vec = _mm512_setzero_ps(); }
@@ -34,12 +39,13 @@ template <>
 struct vReal<double> 
 { 
     __m512d vec; 
+    enum { NumElem = 8 };
     // void load(const double *_p) { vec =  _mm512_load_pd(_p); }
     // void store(double *_p) { _mm512_store_pd(_p, vec); }
     // void setzero() { vec = _mm512_setzero_pd(); }
 };
 
-// tyoedef
+// typedef
 typedef vReal<float>  vRealF;
 typedef vReal<double> vRealD;
 

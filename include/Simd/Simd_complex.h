@@ -13,29 +13,24 @@
 
 #include "Simd_opt.h"
 
+/**
+ * @brief 
+ * 
+ * @tparam Tp represent presicion. Now float(F32) and double(F64) is supported
+ * \todo TODO word std::complex<Tp> is    
+ */
 template <typename Tp>
 struct vComplex {
     vReal<Tp> real;
     vReal<Tp> imag;
+    enum { NumElem = vReal<Tp>::NumElem };
+    /// Define arithmetic operators: FIX IT
+    // friend inline vComplex<Tp> operator+(vComplexD<Tp>a, vComplex<Tp> b);
+    // friend inline vComplex<Tp> operator-(vComplexD<Tp>a, vComplex<Tp> b);
+    // friend inline vComplex<Tp> operator*(vComplexD<Tp>a, vComplex<Tp> b);
+    // friend inline vComplex<Tp> operator/(vComplexD<Tp>a, vComplex<Tp> b);
 };
 
-// template <>
-// template <typename Tp>
-// struct vComplex<std::complex<Tp>> {
-//     vReal<Tp> real;
-//     vReal<Tp> imag;
-// };
-
-// void A() { vComplex<std::complex<float>> a; a.real.vec.zero();}
-
-// Define arithmetic operators
-// friend inline vComplexD operator+(vComplexD a, vComplexD b);
-// friend inline vComplexD operator-(vComplexD a, vComplexD b);
-// friend inline vComplexD operator*(vComplexD a, vComplexD b);
-// friend inline vComplexD operator/(vComplexD a, vComplexD b);
-
-// struct vComplexF { vRealF real; vRealF imag; };
-// struct vComplexD { vRealD real; vRealD imag; };
 
 // clang-format off
 
@@ -131,3 +126,24 @@ static inline vComplexD SimdFmasub(const vComplexD &a, const vComplexD &b, const
     return {SimdFmsub(a.real, b.real, SimdFmadd(a.imag, b.imag, c.real)),
             SimdFmadd(a.real, b.imag, SimdFmsub(a.imag, b.real, c.imag))};
 }
+
+
+
+//////////////////
+#if 0
+
+template <>
+template <typename Tp>
+struct vComplex<std::complex<Tp>> {
+    vReal<Tp> real;
+    vReal<Tp> imag;
+};
+
+void A() { vComplex<std::complex<float>> a; a.real.vec.zero();}
+
+
+
+// struct vComplexF { vRealF real; vRealF imag; };
+// struct vComplexD { vRealD real; vRealD imag; };
+
+#endif

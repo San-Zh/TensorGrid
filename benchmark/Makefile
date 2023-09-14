@@ -1,24 +1,57 @@
 
-BLAS_PATH= /usr/local
+SOFTROOT = ..
 
-INCLUDE += -I${BLAS_PATH}/include
-LINKS += -L${BLAS_PATH}/lib -Wl,-rpath,${BLAS_PATH}/lib -lopenblas
+INCLUDE  = -I ${SOFTROOT}/include -I ${SOFTROOT}/benchmark/include
+LDLIB=
+LINKS= -L./ -Wl,-rpath=./ 
 
-CC =gcc
-CXX=g++
-C_FLAGS  =
-CXX_FLAGS= -O3
 
-targets: tensorgrid_su3.bin
 
-%.o: %.c
-	${CC} ${C_FLAGS} ${INCLUDE} ${LINKS} -o $@ -c $<
+CXX= g++
+CC = gcc
+
+CXX_FLAGS= -std=c++14 -O3
+C_FLAGS  = -std=c99
+
+SIMDFLAG = -mavx512f -mfma
+PRESICION= -DSINGLE
+TENSOR   = -DMAX_ROW=3 -DMAX_COL=3
+SIZE     = -DSIZE=1024
+
+
+HAVE_BLAS = NO
+BLAS_PATH =/usr/local
+
+ifeq (${HAVE_BLAS},YES)
+INCLUDE  += -I${BLAS_PATH}/include
+LDLIB+= -L${BLAS_PATH}/lib -Wl,-rpath,${BLAS_PATH}/lib 
+LINKS += -lopenblas
+endif
+
+CXX_FLAGS += ${PRESICION} ${SIZE} ${TENSOR} ${SIMDFLAG} ${INCLUDE}
+C_FLAGS += ${PRESICION} ${SIZE} ${TENSOR} ${SIMDFLAG} ${INCLUDE}
+
+targets = Benchmark_SU3_gemv.bin
+
+all: ${targets}
 
 %.o: %.cpp
-	${CXX} ${CXX_FLAGS} ${INCLUDE} ${LINKS} -o $@ -c $<
+	${CXX} ${CXX_FLAGS} -o $@ -c $<
 
-tensorgrid_su3.bin: tensorgrid_su3.o
-	${CXX} ${CXX_FLAGS} ${INCLUDE}  -o $@  $< ${LINKS}
+%.o: %.c
+	${CC} ${C_FLAGS} -o $@ -c $<
 
-clean:
-	rm *.o *.bin -rf
+Nrum=0
+
+Benchmark_SU3_gemv.bin: Benchmark_SU3_gemv.o
+	${CXX} ${CXX_FLAGS}  -o $@  $< ${LDLIB} ${LINKS}
+
+
+run:
+	./Benchmark_SU3_gemv.bin 
+
+clean: 
+	rm -rf *.o ${targets}
+
+
+
