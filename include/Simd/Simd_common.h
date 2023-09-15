@@ -32,15 +32,6 @@ typedef vReal<double> vRealD;
 
 // load
 template <typename Tp>
-static inline vReal<Tp> SimdLoad(const Tp *_p)
-{
-    vReal<Tp> ret;
-    _for(i, vReal<Tp>::NumElem, ret.vec[i] = _p[i]);
-    return ret;
-}
-
-// load
-template <typename Tp>
 static inline void SimdLoad(vReal<Tp> &a, const Tp *_p)
 {
     _for(i, vReal<Tp>::NumElem, a.vec[i] = _p[i]);
@@ -62,45 +53,36 @@ static inline void SimdSetzero(vReal<Tp> &a)
 
 // add
 template <typename Tp>
-static inline vReal<Tp> SimdAdd(const vReal<Tp> &a, const vReal<Tp> b)
+static inline void SimdAdd(vReal<Tp> &ret, const vReal<Tp> &a, const vReal<Tp> &b)
 {
-    vReal<Tp> ret;
     _for(i, vReal<Tp>::NumElem, ret.vec[i] = a.vec[i] + b.vec[i]);
-    return ret;
 }
 
 // sub
 template <typename Tp>
-static inline vReal<Tp> SimdSub(const vReal<Tp> &a, const vReal<Tp> b)
+static inline void SimdSub(vReal<Tp> &ret, const vReal<Tp> &a, const vReal<Tp> &b)
 {
-    vReal<Tp> ret;
     _for(i, vReal<Tp>::NumElem, ret.vec[i] = a.vec[i] - b.vec[i]);
-    return ret;
 }
 
 // mul
 template <typename Tp>
-static inline vReal<Tp> SimdMul(const vReal<Tp> &a, const vReal<Tp> b)
+static inline void SimdMul(vReal<Tp> &ret, const vReal<Tp> &a, const vReal<Tp> &b)
 {
-    vReal<Tp> ret;
     _for(i, vReal<Tp>::NumElem, ret.vec[i] = a.vec[i] * b.vec[i]);
-    return ret;
 }
 
 // fmadd  dst = a*b+c
 template <typename Tp>
-static inline vReal<Tp> SimdFmadd(const vReal<Tp> &a, const vReal<Tp> b, const vReal<Tp> &c)
+static inline void SimdFmadd(vReal<Tp> &ret, vReal<Tp> &a, const vReal<Tp> &b, const vReal<Tp> &c)
 {
-    vReal<Tp> ret;
     _for(i, vReal<Tp>::NumElem, ret.vec[i] = a.vec[i] * b.vec[i] + c.vec[i]);
-    return ret;
 }
 
 // fmsub  dst = a*b-c
 template <typename Tp>
-static inline vReal<Tp> SimdFmsub(const vReal<Tp> &a, const vReal<Tp> b, const vReal<Tp> &c)
+static inline void SimdFmsub(vReal<Tp> &ret, const vReal<Tp> &a, const vReal<Tp> &b,
+                             const vReal<Tp> &c)
 {
-    vReal<Tp> ret;
     _for(i, vReal<Tp>::NumElem, ret.vec[i] = a.vec[i] * b.vec[i] - c.vec[i]);
-    return ret;
 }
