@@ -13,11 +13,8 @@
 
 #pragma once
 
-#pragma message(" \"Simd_avx256.h\" included");
+#pragma message(" \"Simd_avx256.h\" included")
 
-// #include <avxintrin.h>
-// #include <avx2intrin.h>
-// #include <fmaintrin.h>
 #include <immintrin.h>
 
 

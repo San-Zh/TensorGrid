@@ -17,7 +17,6 @@
 
 
 #if !defined(SIMD_NO) && !defined(__AVX512F__) && (defined(__AVX__) || defined(__AVX2__))
-#define __FMA__
 #define ALIGN_BYTES 32
 #define SIMP_OPT    SIMD_AVX256
 #include "Simd_avx256.h"
