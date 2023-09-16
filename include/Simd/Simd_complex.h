@@ -44,19 +44,23 @@ template <> struct vComplexTraits<double> { typedef vComplex<double> value_type;
 
 // clang-format on
 
-// load
-template <typename Tp>
-static inline vComplex<Tp> SimdLoad(const Tp *p_re, const Tp *p_im)
-{
-    return {SimdLoad(p_re), SimdLoad(p_im)};
-}
+///////////////// with a void type return; ////////////////////
 
+// load
 template <typename Tp>
 static inline void SimdLoad(vComplex<Tp> &a, const Tp *p_re, const Tp *p_im)
 {
     SimdLoad(a.real, p_re);
     SimdLoad(a.imag, p_im);
 }
+
+template <typename Tp>
+static inline void SimdLoad(vComplex<Tp> &a, Tp *p[2])
+{
+    SimdLoad(a.real, p[0]);
+    SimdLoad(a.imag, p[1]);
+}
+
 
 // store
 template <typename Tp>
@@ -66,62 +70,111 @@ static inline void SimdStore(Tp *p_re, Tp *p_im, const vComplex<Tp> &a)
     SimdStore(p_im, a.imag);
 }
 
+template <typename Tp>
+static inline void SimdStore(Tp *_p[2], const vComplex<Tp> &a)
+{
+    SimdStore(_p[0], a.real);
+    SimdStore(_p[1], a.imag);
+}
+
 // set zero
 template <typename Tp>
-static inline void SimdSetzero(vComplex<Tp> &a)
+static inline void SimdSetzero(vComplex<Tp> &ret)
 {
-    SimdSetzero(a.real), SimdSetzero(a.imag);
+    SimdSetzero(ret.real), SimdSetzero(ret.imag);
 }
-// static inline void SimdSetzero(vComplexD &) { SimdSetzero(a.real), SimdSetzero(a.imag); }
-
 
 // add
-static inline vComplexF SimdAdd(const vComplexF &a, const vComplexF &b)
+template <typename Tp>
+static inline void SimdAdd(vComplex<Tp> &ret, const vComplex<Tp> &a, const vComplex<Tp> &b)
 {
-    return {SimdAdd(a.real, b.real), SimdAdd(a.imag, b.imag)};
+    SimdAdd(ret.real, a.real, b.real);
+    SimdAdd(ret.imag, a.imag, b.imag);
 }
 
-static inline vComplexD SimdAdd(const vComplexD &a, const vComplexD &b)
+// sub
+template <typename Tp>
+static inline void SimdSub(vComplex<Tp> &ret, const vComplex<Tp> &a, const vComplex<Tp> &b)
 {
-    return {SimdAdd(a.real, b.real), SimdAdd(a.imag, b.imag)};
+    SimdSub(ret.real, a.real, b.real);
+    SimdSub(ret.imag, a.imag, b.imag);
 }
-
 
 // mul
-static inline vComplexF SimdMul(const vComplexF &a, const vComplexF &b)
+template <typename Tp>
+static inline void SimdMul(vComplex<Tp> &ret, const vComplex<Tp> &a, const vComplex<Tp> &b)
+{
+    SimdFmsub(a.real, b.real, SimdMul(a.imag, b.imag));
+    SimdFmadd(a.real, b.imag, SimdMul(a.imag, b.real));
+}
+
+// fmadd
+template <typename Tp>
+static inline void SimdFmadd(vComplex<Tp> &ret, const vComplex<Tp> &a, const vComplex<Tp> &b,
+                             const vComplex<Tp> &c)
+{
+    SimdFmsub(ret.real, a.imag, b.imag, c.real);
+    SimdFmsub(ret.real, a.real, b.real, ret.real);
+    SimdFmadd(ret.imag, a.imag, b.real, c.imag);
+    SimdFmadd(ret.imag, a.real, b.imag, ret.imag);
+}
+
+// fmsub
+template <typename Tp>
+static inline void SimdFmsub(vComplex<Tp> &ret, const vComplex<Tp> &a, const vComplex<Tp> &b,
+                             const vComplex<Tp> &c)
+{
+    SimdFmadd(ret.real, a.imag, b.imag, c.real);
+    SimdFmsub(ret.real, a.real, b.real, ret.real);
+    SimdFmsub(ret.imag, a.imag, b.real, c.imag);
+    SimdFmadd(ret.imag, a.real, b.imag, ret.imag);
+}
+
+
+//////////////////// with a vComplex<Tp> type return; ///////////////////
+
+// load
+template <typename Tp>
+static inline vComplex<Tp> SimdLoad(const Tp *p_re, const Tp *p_im)
+{
+    return {SimdLoad(p_re), SimdLoad(p_im)};
+}
+
+// add
+template <typename Tp>
+static inline vComplex<Tp> SimdAdd(const vComplex<Tp> &a, const vComplex<Tp> &b)
+{
+    return {SimdAdd(a.real, b.real), SimdAdd(a.imag, b.imag)};
+}
+
+// sub
+template <typename Tp>
+static inline vComplex<Tp> SimdSub(const vComplex<Tp> &a, const vComplex<Tp> &b)
+{
+    return {SimdSub(a.real, b.real), SimdSub(a.imag, b.imag)};
+}
+
+// mul
+template <typename Tp>
+static inline vComplex<Tp> SimdMul(const vComplex<Tp> &a, const vComplex<Tp> &b)
 {
     return {SimdFmsub(a.real, b.real, SimdMul(a.imag, b.imag)),
-            SimdFmadd(a.real, b.imag, SimdMul(a.imag, b.real))};
+            SimdFmsub(a.real, b.imag, SimdMul(a.imag, b.real))};
 }
 
-static inline vComplexD SimdMul(const vComplexD &a, const vComplexD &b)
-{
-    return {SimdFmsub(a.real, b.real, SimdMul(a.imag, b.imag)),
-            SimdFmadd(a.real, b.imag, SimdMul(a.imag, b.real))};
-}
-
-
-// fma  dst = a*b + c; dst_r = ar * br - ai * bi + cr = (ar * br + cr) - ai * bi
-static inline vComplexF SimdFmadd(const vComplexF &a, const vComplexF &b, const vComplexF &c)
+// fmadd  dst = a*b + c; dst_r = ar * br - ai * bi + cr = (ar * br + cr) - ai * bi
+template <typename Tp>
+static inline vComplex<Tp> SimdFmadd(const vComplex<Tp> &a, const vComplex<Tp> &b,
+                                     const vComplex<Tp> &c)
 {
     return {SimdFmsub(a.real, b.real, SimdFmsub(a.imag, b.imag, c.real)),
             SimdFmadd(a.real, b.imag, SimdFmadd(a.imag, b.real, c.imag))};
 }
 
-static inline vComplexD SimdFmadd(const vComplexD &a, const vComplexD &b, const vComplexD &c)
-{
-    return {SimdFmsub(a.real, b.real, SimdFmsub(a.imag, b.imag, c.real)),
-            SimdFmadd(a.real, b.imag, SimdFmadd(a.imag, b.real, c.imag))};
-}
-
-// fma  dst = a*b - c; dst_r = ar * br - ai * bi + cr = (ar * br + cr) - ai * bi
-static inline vComplexF SimdFmsub(const vComplexF &a, const vComplexF &b, const vComplexF &c)
-{
-    return {SimdFmsub(a.real, b.real, SimdFmsub(a.imag, b.imag, c.real)),
-            SimdFmadd(a.real, b.imag, SimdFmadd(a.imag, b.real, c.imag))};
-}
-
-static inline vComplexD SimdFmasub(const vComplexD &a, const vComplexD &b, const vComplexD &c)
+// fmsub  dst = a*b - c; dst_r = ar * br - ai * bi + cr = (ar * br + cr) - ai * bi
+template <typename Tp>
+static inline vComplex<Tp> SimdFmsub(const vComplex<Tp> &a, const vComplex<Tp> &b,
+                                     const vComplex<Tp> &c)
 {
     return {SimdFmsub(a.real, b.real, SimdFmadd(a.imag, b.imag, c.real)),
             SimdFmadd(a.real, b.imag, SimdFmsub(a.imag, b.real, c.imag))};
