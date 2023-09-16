@@ -22,24 +22,32 @@ template <typename Simd_vtype> struct SimdTraits;
 template <>
 struct SimdTraits<vReal<float>> {
     typedef vReal<float> vtype;
+    typedef float        dtype;
+    typedef dtype       *ptr_type;
     enum { NumElem = vReal<float>::NumElem };
 };
 
 template <>
 struct SimdTraits<vReal<double>> {
     typedef vReal<double> vtype;
+    typedef double        dtype;
+    typedef double       *ptr_type;
     enum { NumElem = vReal<double>::NumElem };
 };
 
 template <>
 struct SimdTraits<vComplex<float>> {
     typedef vComplex<float> vtype;
+    typedef float           dtype;
+    typedef float          *ptr_type[2];
     enum { NumElem = vComplex<float>::NumElem };
 };
 
 template <>
 struct SimdTraits<vComplex<double>> {
     typedef vComplex<double> vtype;
+    typedef double           dtype;
+    typedef double         **ptr_type;
     enum { NumElem = vComplex<double>::NumElem };
 };
 
