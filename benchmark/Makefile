@@ -10,13 +10,13 @@ LINKS= -L./ -Wl,-rpath=./
 CXX= g++
 CC = gcc
 
-CXX_FLAGS= -std=c++14 -O3
+CXX_FLAGS= -std=c++14 -O3 #-DDEBUG
 C_FLAGS  = -std=c99
 
 SIMDFLAG = -mavx512f -mfma
-PRESICION= -DSINGLE
-TENSOR   = -DMAX_ROW=3 -DMAX_COL=3
-SIZE     = -DSIZE=1024
+PRESICION= -DPRECISION=SINGLE
+TENSOR   = -DMAX_ROW=2 -DMAX_COL=4
+SIZE     = -DBASEGRID=512
 
 
 HAVE_BLAS = NO
@@ -31,7 +31,7 @@ endif
 CXX_FLAGS += ${PRESICION} ${SIZE} ${TENSOR} ${SIMDFLAG} ${INCLUDE}
 C_FLAGS += ${PRESICION} ${SIZE} ${TENSOR} ${SIMDFLAG} ${INCLUDE}
 
-targets = Benchmark_SU3_gemv.bin
+targets = Benchmark_SU3_gemv.bin Benchmark_Check.bin su3.bin
 
 all: ${targets}
 
@@ -41,17 +41,32 @@ all: ${targets}
 %.o: %.c
 	${CC} ${C_FLAGS} -o $@ -c $<
 
-Nrum=0
 
-Benchmark_SU3_gemv.bin: Benchmark_SU3_gemv.o
+%.bin: %.o
 	${CXX} ${CXX_FLAGS}  -o $@  $< ${LDLIB} ${LINKS}
 
 
-run:
+# Benchmark_SU3_gemv.bin: Benchmark_SU3_gemv.o
+# 	${CXX} ${CXX_FLAGS}  -o $@  $< ${LDLIB} ${LINKS}
+
+Benchmark_Check.bin: Benchmark_Check.o
+	${CXX} ${CXX_FLAGS}  -o $@  $< ${LDLIB} ${LINKS}
+
+
+su3: su3.bin
+	./su3.bin
+
+check: 
+	make clean
+	make Benchmark_Check.bin
+	./Benchmark_Check.bin
+
+run: Benchmark_SU3_gemv.bin
 	./Benchmark_SU3_gemv.bin 
+	make clean
 
 clean: 
-	rm -rf *.o ${targets}
+	rm -rf *.o ${targets} *.bin
 
 
 

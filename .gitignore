@@ -2,3 +2,6 @@
 *.o
 *.log
 *.txt
+
+doc/html
+doc/latex
