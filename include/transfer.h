@@ -12,6 +12,7 @@
 #pragma once
 
 #include <iostream>
+#include <random>
 
 template <typename Tp>
 void tranfer2TG(Tp *TGdest, Tp *src, size_t sizeTensor, size_t sizeGrid)
@@ -105,13 +106,12 @@ void tranfer2general(Tp *dest, Tp *TGsrc, size_t sizeTensor, size_t sizeGrid)
 #endif
 
 template <typename Tp>
-void random(Tp *src, size_t size)
+void random(Tp *const &src, size_t const &size)
 {
-    Tp RdmInv = (Tp) (1) / static_cast<Tp>(RAND_MAX);
-    for (size_t i = 0; i < size; i++) {
-        src[i] = static_cast<Tp>(random()) * RdmInv;
-        // src[i] = static_cast<DataType>(i);
-    }
+    std::uniform_real_distribution<Tp> RandEngine(-1.0, 1.0);
+    std::random_device                 rd;
+    std::mt19937                       mt(rd());
+    for (size_t i = 0; i < size; i++) { src[i] = RandEngine(mt); }
 }
 
 template <typename Tp>
@@ -126,13 +126,13 @@ Tp diff_Ary_TGAry(Tp *A, Tp *TGA, size_t sizeTensor, size_t sizeGrid)
     for (size_t i = 0; i < sizeGrid; i++) {
         for (size_t its = 0; its < sizeTensor; its++) {
             diff = A[i * sizeTensor + its] - pb[its][i];
-            sum += diff;
+            sum += diff * diff;
 #ifdef DEBUG_PRINT
             printf("%14.4e%14.4e%14.4e\n", A[i * sizeTensor + its], pb[its][i], diff);
 #endif
         }
     }
-    return sum;
+    return sqrt(sum);
 }
 
 template <typename Tp1, typename Tp2>
