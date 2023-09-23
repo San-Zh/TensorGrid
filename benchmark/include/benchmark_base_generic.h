@@ -14,7 +14,7 @@
 #include <complex>
 
 #if defined(HAVE_BLAS)
-#include <cblas.h>
+#include "benchmark_base_cblas.h"
 #endif
 
 
@@ -33,20 +33,6 @@ template <int M, int N, typename Tp>
 void ComplexAry_MatrixVector_Mac(std::complex<Tp> *&dest, const std::complex<Tp> *&mat,
                                  const std::complex<Tp> *&src, const int gridSize)
 {
-#ifdef HAVE_BLAS
-    std::complex<Tp> alpha(1, 0), beta(0, 0);
-    if (sizeof(Tp) == 4) {
-        for (size_t v = 0; v < gridSize; v++) {
-            cblas_cgemv(CblasRowMajor, CblasNoTrans, N, M, &alpha, &mat[9 * v], 3, &src[3 * v], 1,
-                        &beta, &dest[3 * v], 1);
-        }
-    } else if (sizeof(Tp) == 8) {
-        for (size_t v = 0; v < gridSize; v++) {
-            cblas_zgemv(CblasRowMajor, CblasNoTrans, N, M, &alpha, &mat[9 * v], 3, &src[3 * v], 1,
-                        &beta, &dest[3 * v], 1);
-        }
-    }
-#else
     for (size_t v = 0; v < gridSize; v++) {
         for (size_t row = 0; row < M; row++) {
             std::complex<Tp> res = 0.0;
@@ -57,41 +43,27 @@ void ComplexAry_MatrixVector_Mac(std::complex<Tp> *&dest, const std::complex<Tp>
             // dest[v * M + row] = res;
         }
     }
-#endif
 }
 
 
 /**
- * @brief  when gridSize > 1024*8 double, this method accelerate rate mothan 4.0, 
- * compare to  method as followed; here test pc L1(32K+32K) L2(1024K) L3(17M)
+ * @brief 
  * 
  * @tparam Tp 
  * @param dest 
  * @param mat 
  * @param src 
+ * @param M 
+ * @param N 
  * @param gridSize 
  */
-template <int M, int N, typename Tp>
-void ComplexAry_MatrixVector(std::complex<Tp> *dest, const std::complex<Tp> *mat,
-                             const std::complex<Tp> *src, const int gridSize)
+template <typename Tp>
+void AOS_MatrixVector(Tp *dest, const Tp *mat, const Tp *src, const unsigned M, const unsigned N,
+                      const int gridSize)
 {
-#ifdef HAVE_BLAS
-    std::complex<Tp> alpha(1, 0), beta(0, 0);
-    if (sizeof(Tp) == 4) {
-        for (size_t v = 0; v < gridSize; v++) {
-            cblas_cgemv(CblasRowMajor, CblasNoTrans, N, M, &alpha, &mat[9 * v], 3, &src[3 * v], 1,
-                        &beta, &dest[3 * v], 1);
-        }
-    } else if (sizeof(Tp) == 8) {
-        for (size_t v = 0; v < gridSize; v++) {
-            cblas_zgemv(CblasRowMajor, CblasNoTrans, N, M, &alpha, &mat[9 * v], 3, &src[3 * v], 1,
-                        &beta, &dest[3 * v], 1);
-        }
-    }
-#else
     for (size_t v = 0; v < gridSize; v++) {
         for (size_t row = 0; row < M; row++) {
-            std::complex<Tp> res = 0.0;
+            Tp res = 0.0;
             for (size_t col = 0; col < N; col++) {
                 // dest[v * M + row] += mat[v * M * N + row * N + col] * src[v * N + col];
                 res += mat[v * M * N + row * N + col] * src[v * N + col];
@@ -99,8 +71,38 @@ void ComplexAry_MatrixVector(std::complex<Tp> *dest, const std::complex<Tp> *mat
             dest[v * M + row] = res;
         }
     }
-#endif
 }
+
+const size_t vch = 245;
+
+
+template <typename Tp>
+void AOS_MatrixMatrix(const unsigned M, const unsigned N, const unsigned K, const Tp *A,
+                      const Tp *B, Tp *C, const size_t gridSize)
+{
+    for (size_t v = 0; v < gridSize; v++) {
+        Tp Ret[M][N];
+        for (unsigned m = 0; m < M; m++) {
+            for (unsigned n = 0; n < N; n++) {
+                Ret[m][n] = Tp(0.0);
+                for (unsigned k = 0; k < K; k++) {
+                    Ret[m][n] += A[v * M * K + m * K + k] * B[v * K * N + k * N + n];
+                }
+                C[v * M * N + m * N + n] = Ret[m][n];
+            }
+        }
+    }
+    // {
+    //     std::cout << "C[" << M << "][" << N << "] = " << std::endl;
+    //     for (unsigned m = 0; m < M; m++) {
+    //         for (unsigned n = 0; n < N; n++) { std::cout << " " << C[vch * M * N + m * N + n]; }
+    //         std::cout << std::endl;
+    //     }
+    //     std::cout << "-----------------------" << std::endl;
+    // }
+}
+
+
 
 template <int M, int N, typename Tp>
 void ComplexAry_MatrixVector02(std::complex<Tp> *dest, std::complex<Tp> *mat, std::complex<Tp> *src,
@@ -141,6 +143,7 @@ void ComplexAry_MatrixVector_v2(Tp *dest, const Tp *mat, const Tp *src, const in
     }
 }
 
+
 template <typename Tp>
 Tp normX(Tp *const &_X, size_t const &_N)
 {
@@ -151,6 +154,7 @@ Tp normX(Tp *const &_X, size_t const &_N)
 }
 
 // clang-format off
+
 
 /**
  * @brief 

@@ -25,7 +25,7 @@
  * @param gridSize 
  */
 template <unsigned M, unsigned N>
-void TensorGrid_CMatrixVector_Batch_avx512_fma(double *dest, double *mat, double *src,
+void TensorGrid_CMatrixVector_avx512_fma(double *dest, double *mat, double *src,
                                                const size_t &gridSize)
 {
     double *pd[M][2];
@@ -78,7 +78,7 @@ void TensorGrid_CMatrixVector_Batch_avx512_fma(double *dest, double *mat, double
  * @param gridSize 
  */
 template <unsigned M, unsigned N>
-void TensorGrid_CMatrixVector_Batch_avx512_fma(float *dest, float *mat, float *src, size_t gridSize)
+void TensorGrid_CMatrixVector_avx512_fma(float *dest, float *mat, float *src, size_t gridSize)
 {
     float *pd[M][2];
     float *ps[N][2];
@@ -122,7 +122,7 @@ void TensorGrid_CMatrixVector_Batch_avx512_fma(float *dest, float *mat, float *s
 //////////////////////////////////////////////////////////////
 
 /**
- * @brief v0.0.2
+ * @brief v0.0.1
  * 
  * @tparam M 
  * @tparam N 
@@ -132,7 +132,7 @@ void TensorGrid_CMatrixVector_Batch_avx512_fma(float *dest, float *mat, float *s
  * @param gridSize 
  */
 template <unsigned M, unsigned N>
-void TensorGrid_CMatrixVector_Batch_avx512(double *dest, double *mat, double *src, size_t gridSize)
+void TensorGrid_CMatrixVector_avx512_v1(double *dest, double *mat, double *src, size_t gridSize)
 {
     double *pd[M][2];
     double *ps[N][2];
@@ -163,13 +163,16 @@ void TensorGrid_CMatrixVector_Batch_avx512(double *dest, double *mat, double *sr
             __m512d vc_re = _mm512_load_pd(ps[col][0] + v);
             __m512d vc_im = _mm512_load_pd(ps[col][1] + v);
             for (size_t row = 0; row < M; row++) {
-                __m512d mrc_re = _mm512_load_pd(pm[row][col][0] + v);
-                __m512d mrc_im = _mm512_load_pd(pm[row][col][1] + v);
+                __m512d m_re = _mm512_load_pd(pm[row][col][0] + v);
+                __m512d m_im = _mm512_load_pd(pm[row][col][1] + v);
 
-                vd_re[row] = _mm512_add_pd(vd_re[row], _mm512_sub_pd(_mm512_mul_pd(mrc_re, vc_re),
-                                                                     _mm512_mul_pd(mrc_im, vc_im)));
-                vd_im[row] = _mm512_add_pd(vd_im[row], _mm512_add_pd(_mm512_mul_pd(mrc_re, vc_im),
-                                                                     _mm512_mul_pd(mrc_im, vc_re)));
+                // vd_re[row] = _mm512_add_pd(vd_re[row], _mm512_sub_pd(_mm512_mul_pd(mrc_re, vc_re),
+                //                                                      _mm512_mul_pd(mrc_im, vc_im)));
+                // vd_im[row] = _mm512_add_pd(vd_im[row], _mm512_add_pd(_mm512_mul_pd(mrc_re, vc_im),
+                //                                                      _mm512_mul_pd(mrc_im, vc_re)));
+
+                vd_re[row] = _mm512_fmsub_pd(m_re, vc_re, _mm512_fmsub_pd(m_im, vc_im, vd_re[row]));
+                vd_im[row] = _mm512_fmadd_pd(m_re, vc_im, _mm512_fmadd_pd(m_im, vc_re, vd_im[row]));
             }
             for (size_t m = 0; m < M; m++) {
                 _mm512_store_pd(&pd[m][0][v], vd_re[m]);
@@ -181,7 +184,7 @@ void TensorGrid_CMatrixVector_Batch_avx512(double *dest, double *mat, double *sr
 
 
 /**
- * @brief v0.0.2
+ * @brief v0.0.1
  * 
  * @tparam M 
  * @tparam N 
@@ -191,7 +194,7 @@ void TensorGrid_CMatrixVector_Batch_avx512(double *dest, double *mat, double *sr
  * @param gridSize 
  */
 template <unsigned M, unsigned N>
-void TensorGrid_CMatrixVector_Batch_avx512(float *dest, float *mat, float *src, size_t gridSize)
+void TensorGrid_CMatrixVector_avx512_v1(float *dest, float *mat, float *src, size_t gridSize)
 {
     float *pd[M][2];
     float *ps[N][2];
@@ -222,13 +225,16 @@ void TensorGrid_CMatrixVector_Batch_avx512(float *dest, float *mat, float *src, 
             __m512 vc_re = _mm512_load_ps(ps[col][0] + v);
             __m512 vc_im = _mm512_load_ps(ps[col][1] + v);
             for (size_t row = 0; row < M; row++) {
-                __m512 mrc_re = _mm512_load_ps(pm[row][col][0] + v);
-                __m512 mrc_im = _mm512_load_ps(pm[row][col][1] + v);
+                __m512 m_re = _mm512_load_ps(pm[row][col][0] + v);
+                __m512 m_im = _mm512_load_ps(pm[row][col][1] + v);
 
-                vd_re[row] = _mm512_add_ps(vd_re[row], _mm512_sub_ps(_mm512_mul_ps(mrc_re, vc_re),
-                                                                     _mm512_mul_ps(mrc_im, vc_im)));
-                vd_im[row] = _mm512_add_ps(vd_im[row], _mm512_add_ps(_mm512_mul_ps(mrc_re, vc_im),
-                                                                     _mm512_mul_ps(mrc_im, vc_re)));
+                // vd_re[row] = _mm512_add_ps(vd_re[row], _mm512_sub_ps(_mm512_mul_ps(m_re, vc_re),
+                //                                                      _mm512_mul_ps(m_im, vc_im)));
+                // vd_im[row] = _mm512_add_ps(vd_im[row], _mm512_add_ps(_mm512_mul_ps(m_re, vc_im),
+                //                                                      _mm512_mul_ps(m_im, vc_re)));
+
+                vd_re[row] = _mm512_fmsub_ps(m_re, vc_re, _mm512_fmsub_ps(m_im, vc_im, vd_re[row]));
+                vd_im[row] = _mm512_fmadd_ps(m_re, vc_im, _mm512_fmadd_ps(m_im, vc_re, vd_im[row]));
             }
             for (size_t m = 0; m < M; m++) {
                 _mm512_store_ps(pd[m][0] + v, vd_re[m]);
@@ -243,7 +249,7 @@ void TensorGrid_CMatrixVector_Batch_avx512(float *dest, float *mat, float *src, 
 
 
 /**
- * @brief v0.0.1
+ * @brief v0.0.0
  * 
  * @param dest 
  * @param mat 
@@ -297,7 +303,7 @@ void TensorGrid_CMatrixVector_avx512(double *dest, double *mat, double *src, con
 
 
 /**
- * @brief v0.0.1
+ * @brief v0.0.0
  * 
  * @param dest 
  * @param mat 

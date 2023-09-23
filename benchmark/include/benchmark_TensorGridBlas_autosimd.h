@@ -9,10 +9,6 @@
 #define NCOL 3
 #endif
 
-#include <iostream>
-#include <cblas.h>
-
-
 template <typename Tp>
 void TensorGrid_CMatrixVector(Tp *dest, Tp *mat, const void *src, size_t gridSize)
 {

@@ -33,7 +33,7 @@
  * @param gridSize 
  */
 template <unsigned M, unsigned N>
-void TensorGrid_CMatrixVector_Batch_avx256(double *dest, double *mat, double *src, size_t gridSize)
+void TensorGrid_CMatrixVector_avx256_v1(double *dest, double *mat, double *src, size_t gridSize)
 {
     double *pd[M][2];
     double *ps[N][2];
@@ -90,7 +90,7 @@ void TensorGrid_CMatrixVector_Batch_avx256(double *dest, double *mat, double *sr
  * @param gridSize 
  */
 template <unsigned M, unsigned N>
-void TensorGrid_CMatrixVector_Batch_avx256(float *dest, float *mat, float *src, size_t gridSize)
+void TensorGrid_CMatrixVector_avx256_v1(float *dest, float *mat, float *src, size_t gridSize)
 {
     float *pd[M][2];
     float *ps[N][2];

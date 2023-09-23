@@ -112,6 +112,7 @@ void random(Tp *const &src, size_t const &size)
     std::random_device                 rd;
     std::mt19937                       mt(rd());
     for (size_t i = 0; i < size; i++) { src[i] = RandEngine(mt); }
+    // for (size_t i = 0; i < size; i++) { src[i] = Tp(i); }
 }
 
 template <typename Tp>
@@ -136,7 +137,7 @@ Tp diff_Ary_TGAry(Tp *A, Tp *TGA, size_t sizeTensor, size_t sizeGrid)
 }
 
 template <typename Tp1, typename Tp2>
-Tp1 diff_vector_norm2(Tp1 *A, Tp2 *B, size_t Size)
+Tp1 diff_vector_norm(Tp1 *const A, Tp2 *const B, const size_t Size)
 {
     Tp1 *ptrA;
     Tp2 *ptrB;
@@ -150,11 +151,11 @@ Tp1 diff_vector_norm2(Tp1 *A, Tp2 *B, size_t Size)
         printf("%14.4e%14.4e%14.4e\n", *ptrA, *ptrB, res);
 #endif
     }
-    return res;
+    return sqrt(res);
 }
 
 template <typename Tp1, typename Tp2>
-void xeqy(Tp1 *A, Tp2 *B, size_t Size)
+void xeqy(const Tp1 *A, const Tp2 *B, const size_t Size)
 {
     Tp1 *ptrA;
     Tp2 *ptrB;
