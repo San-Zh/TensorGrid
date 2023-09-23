@@ -1,7 +1,7 @@
 /**
  * @file Simd_complex.h
  * @author your name (you@domain.com)
- * @brief 
+ * @brief vComplex<Tp>, constructed by two vReal<Tp> vector.
  * @version 0.1
  * @date 2023-09-09
  * 
@@ -14,35 +14,31 @@
 #include "Simd_opt.h"
 
 /**
- * @brief 
+ * @brief vComplex<Tp>, constructed by two vReal<Tp> vector.
  * 
+ * \todo \b TODO: MAYBE Another vtype \b vComplex<std::complex<Tp>> shuold be considered.  
  * @tparam Tp represent presicion. Now float(F32) and double(F64) is supported
- * \todo TODO word std::complex<Tp> is    
  */
 template <typename Tp>
 struct vComplex {
     vReal<Tp> real;
     vReal<Tp> imag;
     enum { NumElem = vReal<Tp>::NumElem };
-    /// Define arithmetic operators: FIX IT
-    // friend inline vComplex<Tp> operator+(vComplexD<Tp>a, vComplex<Tp> b);
-    // friend inline vComplex<Tp> operator-(vComplexD<Tp>a, vComplex<Tp> b);
-    // friend inline vComplex<Tp> operator*(vComplexD<Tp>a, vComplex<Tp> b);
-    // friend inline vComplex<Tp> operator/(vComplexD<Tp>a, vComplex<Tp> b);
+
+    inline void load(Tp *p[2], const size_t _of) { real.load(&p[0][_of]), imag.load(&p[1][_of]); }
+    inline void load(const Tp *pre, const Tp *pim) { real.load(pre), imag.load(pim); }
+
+    inline void store(Tp *p[2], size_t _of) { real.store(p[0], _of), imag.store(p[1], _of); }
+    inline void store(Tp *pre, Tp *pim) { real.store(pre), imag.store(pim); }
+
+    inline void setzero() { real.setzero(), imag.setzero(); }
 };
 
 
-// clang-format off
-
-using vComplexF = vComplex<float >;
+// typedef
+using vComplexF = vComplex<float>;
 using vComplexD = vComplex<double>;
 
-
-template <typename Tp> struct vComplexTraits;
-template <> struct vComplexTraits<float > { typedef vComplex<float > value_type; };
-template <> struct vComplexTraits<double> { typedef vComplex<double> value_type; };
-
-// clang-format on
 
 ///////////////// with a void type return; ////////////////////
 
@@ -55,7 +51,14 @@ static inline void SimdLoad(vComplex<Tp> &a, const Tp *p_re, const Tp *p_im)
 }
 
 template <typename Tp>
-static inline void SimdLoad(vComplex<Tp> &a, Tp *p[2])
+static inline void SimdLoad(vComplex<Tp> &a, const Tp *_p[2], size_t _v)
+{
+    SimdLoad(a.real, &_p[0][_v]);
+    SimdLoad(a.imag, &_p[1][_v]);
+}
+
+template <typename Tp>
+static inline void SimdLoad(vComplex<Tp> &a, const Tp *p[2])
 {
     SimdLoad(a.real, p[0]);
     SimdLoad(a.imag, p[1]);
@@ -75,6 +78,13 @@ static inline void SimdStore(Tp *_p[2], const vComplex<Tp> &a)
 {
     SimdStore(_p[0], a.real);
     SimdStore(_p[1], a.imag);
+}
+
+template <typename Tp>
+static inline void SimdStore(Tp *_p[2], size_t _v, const vComplex<Tp> &a)
+{
+    SimdStore(&_p[0][_v], a.real);
+    SimdStore(&_p[1][_v], a.imag);
 }
 
 // set zero

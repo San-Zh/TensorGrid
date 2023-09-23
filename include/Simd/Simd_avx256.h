@@ -1,7 +1,7 @@
 /**
  * @file Simd_avx256.h
  * @author your name (you@domain.com)
- * @brief 
+ * @brief vReal<float>, vReal<double> for avx, 256 bits simd vector
  * @version 0.1
  * @date 2023-09-12
  * 
@@ -9,34 +9,65 @@
  * 
  */
 
-// clang-format off
-
 #pragma once
 
-#pragma message(" \"Simd_avx256.h\" included")
+#pragma message(" TensorGrid/include/Simd/Simd_avx256.h included")
 
 #include <immintrin.h>
 
-
-// pack
-template <typename Tp> struct vReal;
-template <> struct vReal<float>  { __m256  vec;  enum { NumElem = 8 }; };
-template <> struct vReal<double> { __m256d vec;  enum { NumElem = 4 }; };
-
-// typedef \a vRealF and \a vRealD
-typedef vReal<float>  vRealF;
-typedef vReal<double> vRealD;
+// clang-format off
 
 /**
- * @brief \todo Define arithmetic operators: overload + - * () operater
+ * @brief vReal<float>, vReal<double> for avx, 256 bits simd vector
  * 
+ * @tparam Tp 
  */
+template <typename Tp> struct vReal;
+template <> struct vReal<float>;
+template <> struct vReal<double>;
+
+
+template <>
+struct vReal<float>
+{
+    __m256 vec;
+    enum { NumElem = 8 };
+
+    inline void load(const float *_p, size_t _ofs) { vec = _mm256_load_ps(&_p[_ofs]); }
+    inline void load(const float *_p) { vec = _mm256_load_ps(_p); }
+
+    inline void store(float *_p, size_t _ofs) { _mm256_store_ps(&_p[_ofs], vec); }
+    inline void store(float *_p) { _mm256_store_ps(_p, vec); }
+
+    inline void setzero() { vec = _mm256_setzero_ps(); }
+    inline void set(const float &_a) { vec = _mm256_set1_ps(_a); }
+};
+
+
+template <>
+struct vReal<double> 
+{
+    __m256d vec;
+    enum { NumElem = 4 };
+
+    inline void load(const double *_p, size_t _ofs) { vec = _mm256_load_pd(&_p[_ofs]); }
+    inline void load(const double *_p) { vec = _mm256_load_pd(_p); }
+
+    inline void store(double *_p, size_t _ofs) { _mm256_store_pd(&_p[_ofs], vec); }
+    inline void store(double *_p) { _mm256_store_pd(_p, vec); }
+
+    inline void setzero() { vec = _mm256_setzero_pd(); }
+    inline void set(const double &_a) { vec = _mm256_set1_pd(_a); }
+};
+
 
 // typedef
 typedef vReal<float>  vRealF;
 typedef vReal<double> vRealD;
 
+
 ///////////////// with a void type return; ////////////////////
+
 // load
 static inline void SimdLoad(vReal<float>  &a, const float  *_p) { a.vec = _mm256_load_ps(_p);}
 static inline void SimdLoad(vReal<double> &a, const double *_p) { a.vec = _mm256_load_pd(_p);}
@@ -44,6 +75,9 @@ static inline void SimdLoad(vReal<double> &a, const double *_p) { a.vec = _mm256
 // store
 static inline void SimdStore(float  *_p, const vRealF &a) { _mm256_store_ps(_p, a.vec); }
 static inline void SimdStore(double *_p, const vRealD &a) { _mm256_store_pd(_p, a.vec); }
+
+static inline void SimdStore(float  *_p,const  size_t v, const vRealF &a) { _mm256_store_ps(&_p[v], a.vec); }
+static inline void SimdStore(double *_p,const  size_t v, const vRealD &a) { _mm256_store_pd(&_p[v], a.vec); }
 
 // setzero
 static inline void SimdSetzero( vRealF &a) { a.vec = _mm256_setzero_ps(); }
@@ -75,9 +109,6 @@ static inline void SimdFmsub(vRealD &ret, const vRealD &a, const vRealD &b, cons
 // load
 static inline vRealF SimdLoad(const float  *_p) { return {_mm256_load_ps(_p)};}
 static inline vRealD SimdLoad(const double *_p) { return {_mm256_load_pd(_p)};}
-
-// static inline vRealF SimdSetzero() { return {_mm256_setzero_ps()}; } // wrong overloading
-// static inline vRealD SimdSetzero() { return {_mm256_setzero_pd()}; } // wrong overloading
 
 // add
 static inline vRealF SimdAdd(const vRealF &a, const vRealF &b) { return {_mm256_add_ps(a.vec, b.vec)}; }

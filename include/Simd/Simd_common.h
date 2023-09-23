@@ -1,7 +1,7 @@
 /**
  * @file Simd_common.h
  * @author your name (you@domain.com)
- * @brief 
+ * @brief Real<float>, vReal<double> for a \b virtual 512-bit simd vector. 
  * @version 0.1
  * @date 2023-09-09
  * 
@@ -9,31 +9,53 @@
  * 
  */
 
-// clang-format off
-
 #pragma once
 
-#pragma message(" \"Simd_common.h\" included")
+#pragma message(" TensorGrid/include/Simd/Simd_common.h included")
 
 // #include <iostream>
-#include <string.h>
+// #include <string.h>
+#include <type_traits>
 
 #define _for(i, _N, e) \
     for (int i = 0; i < _N; i++) { e; }
 
-constexpr unsigned W_BITS = 512;
-constexpr unsigned W_BYTES = W_BITS >> 3;
-constexpr unsigned W_PS = W_BITS >>5 ;
-constexpr unsigned W_PD = W_BITS >>6;
+// clang-format off
 
-template <typename Tp> struct vReal;
-template <> struct vReal<float>  { float  vec[W_PS]; enum{NumElem = W_PS}; };
-template <> struct vReal<double> { double vec[W_PD]; enum{NumElem = W_PD }; };
+/**
+ * @brief vReal<float>, vReal<double> for a \b virtual 512-bit simd vector. The purpose is to 
+ * achieve automatic vectorization through this virtual vector behaves like a real one.
+ * \todo NOT WELL EFFECTS. 
+ * 
+ * @tparam Tp 
+ */
+template<typename Tp> struct _SelfSimdWidthTraits;
+template<> struct _SelfSimdWidthTraits<double> { enum {_wd = 16}; };
+template<> struct _SelfSimdWidthTraits<float> { enum {_wd = 8}; };
+
+
+template <typename Tp>
+struct vReal {
+    float vec[_SelfSimdWidthTraits<Tp>::_wd];
+    enum { NumElem = _SelfSimdWidthTraits<Tp>::_wd };
+
+    inline void load(const Tp *_p, const size_t _ofs) { _for(_i, vReal<Tp>::NumElem, vec[_i] = _p[_ofs + _i]); }
+    inline void load(const Tp *_p) { _for(_i, vReal<Tp>::NumElem, vec[_i] = _p[_i]); }
+
+    inline void store(Tp *_p, const size_t _ofs) { _for(_i, vReal<Tp>::NumElem, _p[_i] = vec[_ofs + _i]); }
+    inline void store(Tp *_p) { _for(_i, vReal<Tp>::NumElem, _p[_i] = vec[_i]); }
+
+    inline void setzero() { _for(_i, vReal<Tp>::NumElem, vec[_i] = 0.0); }
+    inline void set(const Tp &_a) {  _for(_i, vReal<Tp>::NumElem, vec[_i] = _a); }
+};
+
+
 // clang-format on
 
 // tyepdef
 typedef vReal<float>  vRealF;
 typedef vReal<double> vRealD;
+
 
 ///////////////// with a void type return; ////////////////////
 
@@ -42,7 +64,6 @@ template <typename Tp>
 static inline void SimdLoad(vReal<Tp> &a, const Tp *_p)
 {
     _for(i, vReal<Tp>::NumElem, a.vec[i] = _p[i]);
-    // memcpy(a.vec, _p, W_BYTES);
 }
 
 // store
@@ -50,7 +71,6 @@ template <typename Tp>
 static inline void SimdStore(Tp *_p, const vReal<Tp> &a)
 {
     _for(i, vReal<Tp>::NumElem, _p[i] = a.vec[i]);
-    // memcpy(_p, a.vec, W_BYTES);
 }
 
 // set zero
@@ -58,7 +78,6 @@ template <typename Tp>
 static inline void SimdSetzero(vReal<Tp> &a)
 {
     _for(i, vReal<Tp>::NumElem, a.vec[i] = 0);
-    // memset(a.vec, 0, W_BYTES);
 }
 
 // add
@@ -99,7 +118,6 @@ static inline void SimdFmsub(vReal<Tp> &ret, const vReal<Tp> &a, const vReal<Tp>
 }
 
 
-
 //////////////////// with a vReal<Tp> type return; ///////////////////
 
 // load
@@ -108,7 +126,6 @@ static inline vReal<Tp> SimdLoad(const Tp *_p)
 {
     vReal<Tp> ret;
     _for(i, vReal<Tp>::NumElem, ret.vec[i] = _p[i]);
-    // memcpy(ret.vec, _p, 64);
     return ret;
 }
 

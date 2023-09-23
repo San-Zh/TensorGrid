@@ -45,8 +45,8 @@
 #endif
 
 
-#ifdef DEBUG
-#pragma message(PRINT_MACRO(SIMD_OPT))
-#endif
+// #ifdef DEBUG
+// #pragma message(PRINT_MACRO(SIMD_OPT))
+// #endif
 
 
