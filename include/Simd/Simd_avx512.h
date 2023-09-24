@@ -33,11 +33,11 @@ struct vReal<float>
     __m512 vec; // = _mm512_setzero_ps();
     enum { NumElem = 16 };
 
-    inline void load(const float *_p, size_t _ofs) { vec = _mm512_load_ps(&_p[_ofs]); }
-    inline void load(const float *_p) { vec = _mm512_load_ps(_p); }
+    inline void load(const float *_p, size_t _ofs) { vec = _mm512_loadu_ps(&_p[_ofs]); }
+    inline void load(const float *_p) { vec = _mm512_loadu_ps(_p); }
 
-    inline void store(float *_p, size_t _ofs) { _mm512_store_ps(&_p[_ofs], vec); }
-    inline void store(float *_p) { _mm512_store_ps(_p, vec); }
+    inline void store(float *_p, size_t _ofs) { _mm512_storeu_ps(&_p[_ofs], vec); }
+    inline void store(float *_p) { _mm512_storeu_ps(_p, vec); }
     
     inline void setzero() { vec = _mm512_setzero_ps(); }
     inline void set(const float &_a) { vec = _mm512_set1_ps(_a); }
@@ -50,11 +50,11 @@ struct vReal<double>
     __m512d vec; // = _mm512_setzero_pd(); 
     enum { NumElem = 8 };
 
-    inline void load(const double *_p, size_t _ofs) { vec = _mm512_load_pd(&_p[_ofs]); }
-    inline void load(const double *_p) { vec =  _mm512_load_pd(_p); }
+    inline void load(const double *_p, size_t _ofs) { vec = _mm512_loadu_pd(&_p[_ofs]); }
+    inline void load(const double *_p) { vec =  _mm512_loadu_pd(_p); }
 
-    inline void store(double *_p, size_t _ofs) { _mm512_store_pd(&_p[_ofs], vec); }
-    inline void store(double *_p) { _mm512_store_pd(_p, vec); }
+    inline void store(double *_p, size_t _ofs) { _mm512_storeu_pd(&_p[_ofs], vec); }
+    inline void store(double *_p) { _mm512_storeu_pd(_p, vec); }
 
     inline void setzero() { vec = _mm512_setzero_pd(); }
     inline void set(const double &_a) { vec = _mm512_set1_pd(_a); }
