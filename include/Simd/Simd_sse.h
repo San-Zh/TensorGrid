@@ -1,9 +1,9 @@
 /**
- * @file Simd_avx256.h
+ * @file Simd_sse.h
  * @author your name (you@domain.com)
- * @brief vReal<float>, vReal<double> for avx, 256 bits simd vector
+ * @brief 
  * @version 0.1
- * @date 2023-09-12
+ * @date 2023-09-24
  * 
  * @copyright Copyright (c) 2023
  * 

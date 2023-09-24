@@ -11,12 +11,14 @@
 
 #pragma once
 
-enum EnumBit_4DGridDir_t {
-    X_DIR = 0b0001, // x dir
-    Y_DIR = 0b0010,
-    Z_DIR = 0b0100,
-    T_DIR = 0b1000
+enum Enum_TensorGridPrecision_t {
+    REALF    = 0b0001,
+    REALD    = 0b0010,
+    COMPLEXF = 0b0101,
+    COMPLEXD = 0b1010
 };
+
+
 
 /**
  * @brief
@@ -42,14 +44,73 @@ enum EnumBit_4DGridEvenOdd_t {
     OOOO = 0b1111  // 15  E
 };
 
+
+enum EnumBit_4DGridDir_t {
+    T_DIR = OEEE,
+    Z_DIR = EOEE,
+    Y_DIR = EEOE,
+    X_DIR = EEEO // x dir
+};
+
+
 /**
  * @brief 
- * 
  * 
  * @tparam GridEO 
  * @tparam DirEnum 
  */
-template <EnumBit_4DGridEvenOdd_t GridEO, EnumBit_4DGridDir_t DirEnum> struct EvenOddNeighborGrid {
+template <EnumBit_4DGridEvenOdd_t GridEO, EnumBit_4DGridDir_t DirEnum>
+struct EvenOddNeighborGrid {
     // enum { ID = (GridEO & DirEnum) ? (GridEO - DirEnum) : (GridEO + DirEnum) };
-    enum { ID = GridEO | (GridEO & DirEnum) };
+    // enum { ID = (GridEO | (GridEO & DirEnum)) };
 };
+
+
+//////////////////////////////////////////
+
+// template <EnumBit_4DGridEvenOdd_t GridEO, EnumBit_4DGridDir_t DirEnum>
+// EnumBit_4DGridEvenOdd_t NeibGrid()
+// {
+//     return static_cast<EnumBit_4DGridEvenOdd_t>((GridEO & DirEnum) ? (GridEO - DirEnum)
+//                                                                    : (GridEO + DirEnum));
+// }
+
+EnumBit_4DGridEvenOdd_t NeibGrid(const EnumBit_4DGridEvenOdd_t &GridEO,
+                                 const EnumBit_4DGridDir_t     &DirEnum)
+{
+    return static_cast<EnumBit_4DGridEvenOdd_t>((GridEO & DirEnum) ? (GridEO - DirEnum)
+                                                                   : (GridEO + DirEnum));
+}
+
+
+
+// template <EnumBit_4DGridEvenOdd_t GridEO, EnumBit_4DGridDir_t DirEnum>
+// constexpr EnumBit_4DGridEvenOdd_t
+//     NeibGrid = static_cast<EnumBit_4DGridEvenOdd_t>((GridEO & DirEnum) ? (GridEO - DirEnum)
+//                                                                        : (GridEO + DirEnum));
+
+// template <EnumBit_4DGridEvenOdd_t GridEO, EnumBit_4DGridDir_t DirEnum>
+// constexpr EnumBit_4DGridEvenOdd_t
+//     NeibGrid = static_cast<EnumBit_4DGridEvenOdd_t>(GridEO - (GridEO & DirEnum));
+
+
+
+void EnumBit_Print(const EnumBit_4DGridEvenOdd_t &GridEO)
+{
+    printf("Enum %d named %c%c%c%c\n", GridEO, (GridEO & T_DIR) ? 'O' : 'E',
+           (GridEO & Z_DIR) ? 'O' : 'E', (GridEO & Y_DIR) ? 'O' : 'E',
+           (GridEO & X_DIR) ? 'O' : 'E');
+}
+
+
+void EnumBitString(char *s, const EnumBit_4DGridEvenOdd_t &GridEO)
+{
+    sprintf(s, "%c%c%c%c", (GridEO & T_DIR) ? '1' : '0', (GridEO & Z_DIR) ? '1' : '0',
+            (GridEO & Y_DIR) ? '1' : '0', (GridEO & X_DIR) ? '1' : '0');
+}
+
+void EnumBitName(char *s, const EnumBit_4DGridEvenOdd_t &GridEO)
+{
+    sprintf(s, "%c%c%c%c", (GridEO & T_DIR) ? 'O' : 'E', (GridEO & Z_DIR) ? 'O' : 'E',
+            (GridEO & Y_DIR) ? 'O' : 'E', (GridEO & X_DIR) ? 'O' : 'E');
+}
