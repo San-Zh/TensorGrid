@@ -121,8 +121,8 @@ int Benchmark_Gemm()
             watcher.reset();
             for (size_t l = 0; l < LOOPNUM; l++) {
                 // ComplexAry_MatrixVector_v2<MROW, NCOL>(C, A, B, GridSize);
-                AOS_MatrixMatrix(MROW, NCOL, KIN, (std::complex<FLOAT> *) A,
-                                 (std::complex<FLOAT> *) B, (std::complex<FLOAT> *) C, GridSize);
+                AOS_Gemm_batch(MROW, NCOL, KIN, (std::complex<FLOAT> *) A,
+                               (std::complex<FLOAT> *) B, (std::complex<FLOAT> *) C, GridSize);
                 // ComplexAry_MatrixVector02<MROW, NCOL>((std::complex<FLOAT> *) (C),
                 //                                       (std::complex<FLOAT> *) (A),
                 //                                       (std::complex<FLOAT> *) (B), GridSize);

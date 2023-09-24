@@ -121,7 +121,7 @@ void Benchmark_RealGemm()
             /////// Base TensorGrid_ ////////
             watcher.reset();
             for (size_t l = 0; l < LOOPNUM; l++) {
-                AOS_MatrixMatrix(MROW, NCOL, KIN, A, B, C, GridSize);
+                AOS_Gemm_batch(MROW, NCOL, KIN, A, B, C, GridSize);
             }
             t_base = watcher.use();
 

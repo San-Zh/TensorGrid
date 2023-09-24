@@ -22,28 +22,28 @@
  * @param N 
  * @param gridSize 
  */
-void ComplexAry_MatrixVector_cblas(std::complex<double> *dest, const std::complex<double> *mat,
-                                   const std::complex<double> *src, const int M, const int N,
+void ComplexAry_MatrixVector_cblas(const int M, const int N, const std::complex<double> *A,
+                                   const std::complex<double> *X, std::complex<double> *Y,
                                    const size_t gridSize)
 {
     std::complex<double> alpha(1, 0), beta(0, 0);
     for (size_t v = 0; v < gridSize; v++) {
-        cblas_zgemv(CblasRowMajor, CblasNoTrans, M, N, &alpha, &mat[M * N * v], N, &src[N * v], 1,
-                    &beta, &dest[M * v], 1);
+        cblas_zgemv(CblasRowMajor, CblasNoTrans, M, N, &alpha, &A[M * N * v], N, &X[N * v], 1,
+                    &beta, &Y[M * v], 1);
     }
 }
 
 /**
  * @brief cblas: cgemv
  */
-void ComplexAry_MatrixVector_cblas(std::complex<float> *dest, const std::complex<float> *mat,
-                                   const std::complex<float> *src, const int M, const int N,
+void ComplexAry_MatrixVector_cblas(const int M, const int N, const std::complex<float> *A,
+                                   const std::complex<float> *X, std::complex<float> *Y,
                                    const size_t gridSize)
 {
     std::complex<float> alpha(1, 0), beta(0, 0);
     for (size_t v = 0; v < gridSize; v++) {
-        cblas_cgemv(CblasRowMajor, CblasNoTrans, M, N, &alpha, &mat[M * N * v], N, &src[N * v], 1,
-                    &beta, &dest[M * v], 1);
+        cblas_cgemv(CblasRowMajor, CblasNoTrans, M, N, &alpha, &A[M * N * v], N, &X[N * v], 1,
+                    &beta, &Y[M * v], 1);
     }
 }
 

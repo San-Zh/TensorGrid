@@ -91,23 +91,23 @@ int Benchmark_Gemv()
     // size_t GridSize = 0;
     for (size_t GridSize = BASEGRID; GridSize <= MAX_GRID; GridSize *= 2) {
 
-        FLOAT *mat, *src, *des;
-        mat = (FLOAT *) _mm_malloc(2 * MROW * NCOL * GridSize * sizeof(FLOAT), ALIGN_NUM);
-        src = (FLOAT *) _mm_malloc(2 * NCOL * GridSize * sizeof(FLOAT), ALIGN_NUM);
-        des = (FLOAT *) _mm_malloc(2 * MROW * GridSize * sizeof(FLOAT), ALIGN_NUM);
+        FLOAT *A, *X, *Y;
+        A = (FLOAT *) _mm_malloc(2 * MROW * NCOL * GridSize * sizeof(FLOAT), ALIGN_NUM);
+        X = (FLOAT *) _mm_malloc(2 * NCOL * GridSize * sizeof(FLOAT), ALIGN_NUM);
+        Y = (FLOAT *) _mm_malloc(2 * MROW * GridSize * sizeof(FLOAT), ALIGN_NUM);
 
-        FLOAT *TGmat, *TGsrc, *TGdes;
-        TGmat = (FLOAT *) _mm_malloc(2 * MROW * NCOL * GridSize * sizeof(FLOAT), ALIGN_NUM);
-        TGsrc = (FLOAT *) _mm_malloc(2 * NCOL * GridSize * sizeof(FLOAT), ALIGN_NUM);
-        TGdes = (FLOAT *) _mm_malloc(2 * MROW * GridSize * sizeof(FLOAT), ALIGN_NUM);
+        FLOAT *TGA, *TGX, *TGY;
+        TGA = (FLOAT *) _mm_malloc(2 * MROW * NCOL * GridSize * sizeof(FLOAT), ALIGN_NUM);
+        TGX = (FLOAT *) _mm_malloc(2 * NCOL * GridSize * sizeof(FLOAT), ALIGN_NUM);
+        TGY = (FLOAT *) _mm_malloc(2 * MROW * GridSize * sizeof(FLOAT), ALIGN_NUM);
 
         /// random
-        random(mat, 2 * MROW * NCOL * GridSize);
-        random(src, 2 * NCOL * GridSize);
-        tranfer2TG(TGmat, mat, MROW * NCOL * 2, GridSize);
-        tranfer2TG(TGsrc, src, NCOL * 2, GridSize);
+        random(A, 2 * MROW * NCOL * GridSize);
+        random(X, 2 * NCOL * GridSize);
+        tranfer2TG(TGA, A, MROW * NCOL * 2, GridSize);
+        tranfer2TG(TGX, X, NCOL * 2, GridSize);
 
-        FLOAT dsrc = diff_Ary_TGAry(src, TGsrc, 2 * NCOL, GridSize);
+        FLOAT dsrc = diff_Ary_TGAry(X, TGX, 2 * NCOL, GridSize);
 
         int repeat = NRUN;
         while (repeat--) {
@@ -115,92 +115,87 @@ int Benchmark_Gemv()
             /////// Base CMatrix-Vector ////////
             watcher.reset();
             for (size_t l = 0; l < LOOPNUM; l++) {
-                // ComplexAry_MatrixVector_v2<MROW, NCOL>(des, mat, src, GridSize);
-                AOS_MatrixVector((std::complex<FLOAT> *) (des), (std::complex<FLOAT> *) mat,
-                                 (std::complex<FLOAT> *) src, MROW, NCOL, GridSize);
-                // ComplexAry_MatrixVector02<MROW, NCOL>((std::complex<FLOAT> *) (des),
-                //                                       (std::complex<FLOAT> *) (mat),
-                //                                       (std::complex<FLOAT> *) (src), GridSize);
+                // AOS_Gemv_batch_v2(MROW, NCOL, A, X, Y, GridSize);
+                AOS_Gemv_batch(MROW, NCOL, (std::complex<FLOAT> *) A, (std::complex<FLOAT> *) X,
+                               (std::complex<FLOAT> *) Y, GridSize);
+                // AOS_Gemv_batch_v1(MROW, NCOL, (std::complex<FLOAT> *) A, (std::complex<FLOAT> *) X,
+                //                   (std::complex<FLOAT> *) Y, GridSize);
             }
             timebase = watcher.use();
 
-            tranfer2TG(TGdes, des, MROW * 2, GridSize);
-            ddesbase = diff_Ary_TGAry(des, TGdes, 2 * MROW, GridSize);
+            tranfer2TG(TGY, Y, MROW * 2, GridSize);
+            ddesbase = diff_Ary_TGAry(Y, TGY, 2 * MROW, GridSize);
 
 #if defined(HAVE_BLAS)
             watcher.reset();
             for (size_t l = 0; l < LOOPNUM; l++) {
-                ComplexAry_MatrixVector_cblas((std::complex<FLOAT> *) TGdes,
-                                              (std::complex<FLOAT> *) mat,
-                                              (std::complex<FLOAT> *) src, MROW, NCOL, GridSize);
+                ComplexAry_MatrixVector_cblas(MROW, NCOL, (std::complex<FLOAT> *) A,
+                                              (std::complex<FLOAT> *) X,
+                                              (std::complex<FLOAT> *) TGY, GridSize);
             }
             timecblas = watcher.use();
-            ddescblas = diff_vector_norm(des, TGdes, 2 * MROW * GridSize);
+            ddescblas = diff_vector_norm(Y, TGY, 2 * MROW * GridSize);
 #endif
 
             /////////////// TensorGrid //////////
             watcher.reset();
             for (size_t l = 0; l < LOOPNUM; l++) {
-                TensorGrid_CMatrixVector(TGdes, TGmat, TGsrc, GridSize);
+                TensorGrid_CMatrixVector(TGY, TGA, TGX, GridSize);
             }
             timebenchauto = watcher.use();
-            ddesbenchauto = diff_Ary_TGAry(des, TGdes, 2 * MROW, GridSize);
+            ddesbenchauto = diff_Ary_TGAry(Y, TGY, 2 * MROW, GridSize);
 
 #if defined(__AVX512F__)
 
             watcher.reset();
             for (size_t l = 0; l < LOOPNUM; l++) {
-                TensorGrid_CMatrixVector_avx512(TGdes, TGmat, TGsrc, MROW, NCOL, GridSize);
+                TensorGrid_CMatrixVector_avx512(TGY, TGA, TGX, MROW, NCOL, GridSize);
             }
             timebchv0 = watcher.use();
-            ddesbchv0 = diff_Ary_TGAry(des, TGdes, 2 * MROW, GridSize);
+            ddesbchv0 = diff_Ary_TGAry(Y, TGY, 2 * MROW, GridSize);
 
             watcher.reset();
             for (size_t l = 0; l < LOOPNUM; l++) {
-                TensorGrid_CMatrixVector_avx512_v1<MROW, NCOL>(TGdes, TGmat, TGsrc, GridSize);
+                TensorGrid_CMatrixVector_avx512_v1<MROW, NCOL>(TGY, TGA, TGX, GridSize);
             }
             timebchv1 = watcher.use();
-            ddesbchv1 = diff_Ary_TGAry(des, TGdes, 2 * MROW, GridSize);
+            ddesbchv1 = diff_Ary_TGAry(Y, TGY, 2 * MROW, GridSize);
 
 #endif
 
 #if defined(__AVX__) || defined(__AVX2__)
             watcher.reset();
             for (size_t l = 0; l < LOOPNUM; l++) {
-                TensorGrid_CMatrixVector_avx256(TGdes, TGmat, TGsrc, MROW, NCOL, GridSize);
+                TensorGrid_CMatrixVector_avx256(TGY, TGA, TGX, MROW, NCOL, GridSize);
             }
             timebchv0 = watcher.use();
-            ddesbchv0 = diff_Ary_TGAry(des, TGdes, 2 * MROW, GridSize);
+            ddesbchv0 = diff_Ary_TGAry(Y, TGY, 2 * MROW, GridSize);
 
             watcher.reset();
             for (size_t l = 0; l < LOOPNUM; l++) {
-                TensorGrid_CMatrixVector_avx256_v1<MROW, NCOL>(TGdes, TGmat, TGsrc, GridSize);
+                TensorGrid_CMatrixVector_avx256_v1<MROW, NCOL>(TGY, TGA, TGX, GridSize);
             }
             timebchv1 = watcher.use();
-            ddesbchv1 = diff_Ary_TGAry(des, TGdes, 2 * MROW, GridSize);
+            ddesbchv1 = diff_Ary_TGAry(Y, TGY, 2 * MROW, GridSize);
 #endif
 
             watcher.reset();
             for (size_t l = 0; l < LOOPNUM; l++) {
-                TensorGrid_zgemv_batch<FLOAT, MROW, NCOL>(TGdes, TGmat, TGsrc, GridSize);
+                TensorGrid_complex_gemv<MROW, NCOL>(TGA, TGX, TGY, GridSize);
             }
             timeTGBlasv0 = watcher.use();
-            ddesTGBlasv0 = diff_Ary_TGAry(des, TGdes, 2 * MROW, GridSize);
+            ddesTGBlasv0 = diff_Ary_TGAry(Y, TGY, 2 * MROW, GridSize);
 
 
             watcher.reset();
             for (size_t l = 0; l < LOOPNUM; l++) {
-                TensorGrid_zgemv_batch_v1<FLOAT, MROW, NCOL>(TGdes, TGmat, TGsrc, GridSize);
+                TensorGrid_complex_gemv_v1<MROW, NCOL>(TGA, TGX, TGY, GridSize);
+                // TensorGrid_complex_gemv_v2<MROW, NCOL>(TGA, TGX, TGY, GridSize);
+
+                // TensorGrid_complex_gemm_v1<MROW, 1, NCOL>(TGA, TGX, TGY, GridSize);
             }
             timeTGBlasv1 = watcher.use();
-            ddesTGBlasv1 = diff_Ary_TGAry(des, TGdes, 2 * MROW, GridSize);
-
-
-
-#if defined(DEBUG)
-            printf("%16ld%16.2f%16.3g%16.3g%16.3g%16.3g%16.3g\n", GridSize, Lreduce, ddesbase,
-                   ddesbenchauto, ddesTGBlas, ddesbchv1, ddesbchv1);
-#endif
+            ddesTGBlasv1 = diff_Ary_TGAry(Y, TGY, 2 * MROW, GridSize);
 
 
             double MemSize = (double) (2 * (MROW * NCOL + MROW + NCOL) * GridSize * sizeof(FLOAT));
@@ -224,12 +219,12 @@ int Benchmark_Gemv()
 
         printf("\n");
 
-        _mm_free(mat);
-        _mm_free(src);
-        _mm_free(des);
-        _mm_free(TGmat);
-        _mm_free(TGsrc);
-        _mm_free(TGdes);
+        _mm_free(A);
+        _mm_free(X);
+        _mm_free(Y);
+        _mm_free(TGA);
+        _mm_free(TGX);
+        _mm_free(TGY);
     }
 
     return 0;
