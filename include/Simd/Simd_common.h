@@ -30,8 +30,8 @@
  * @tparam Tp 
  */
 template<typename Tp> struct _SelfSimdWidthTraits;
-template<> struct _SelfSimdWidthTraits<double> { enum {_wd = 16}; };
-template<> struct _SelfSimdWidthTraits<float> { enum {_wd = 8}; };
+template<> struct _SelfSimdWidthTraits<double> { enum {_wd = 8}; };
+template<> struct _SelfSimdWidthTraits<float> { enum {_wd = 16}; };
 
 
 template <typename Tp>
@@ -42,7 +42,7 @@ struct vReal {
     inline void load(const Tp *_p, const size_t _ofs) { _for(_i, vReal<Tp>::NumElem, vec[_i] = _p[_ofs + _i]); }
     inline void load(const Tp *_p) { _for(_i, vReal<Tp>::NumElem, vec[_i] = _p[_i]); }
 
-    inline void store(Tp *_p, const size_t _ofs) { _for(_i, vReal<Tp>::NumElem, _p[_i] = vec[_ofs + _i]); }
+    inline void store(Tp *_p, const size_t _ofs) { _for(_i, vReal<Tp>::NumElem, _p[_ofs +_i] = vec[_i]); }
     inline void store(Tp *_p) { _for(_i, vReal<Tp>::NumElem, _p[_i] = vec[_i]); }
 
     inline void setzero() { _for(_i, vReal<Tp>::NumElem, vec[_i] = 0.0); }
