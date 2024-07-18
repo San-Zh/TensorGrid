@@ -127,7 +127,7 @@ int Benchmark_Gemm()
                 //                                       (std::complex<FLOAT> *) (A),
                 //                                       (std::complex<FLOAT> *) (B), GridSize);
             }
-            t_base = watcher.use();
+            t_base = watcher.use() / LOOPNUM;
 
             tranfer2TG(TGC, C, 2 * MROW * NCOL, GridSize);
             dCtrsf = diff_Ary_TGAry(C, TGC, 2 * MROW * NCOL, GridSize);
@@ -137,7 +137,7 @@ int Benchmark_Gemm()
             for (size_t l = 0; l < LOOPNUM; l++) {
                 ComplexAry_MatrixMatrix_cblas(MROW, NCOL, KIN, A, B, TGC, GridSize);
             }
-            t_cblas = watcher.use();
+            t_cblas = watcher.use() / LOOPNUM;
             dCcblas = diff_vector_norm(C, TGC, 2 * MROW * NCOL * GridSize);
 #endif
 
@@ -145,7 +145,7 @@ int Benchmark_Gemm()
             for (size_t l = 0; l < LOOPNUM; l++) {
                 TensorGrid_complex_gemm<MROW, NCOL, KIN>(TGA, TGB, TGC, GridSize);
             }
-            t_TGBlasv0 = watcher.use();
+            t_TGBlasv0 = watcher.use() / LOOPNUM;
             dCTGBlasv0 = diff_Ary_TGAry(C, TGC, 2 * MROW * NCOL, GridSize);
 
 
@@ -153,7 +153,7 @@ int Benchmark_Gemm()
             for (size_t l = 0; l < LOOPNUM; l++) {
                 TensorGrid_complex_gemm_v1<MROW, NCOL, KIN>(TGA, TGB, TGC, GridSize);
             }
-            t_TGBlasv1 = watcher.use();
+            t_TGBlasv1 = watcher.use() / LOOPNUM;
             dCTGBlasv1 = diff_Ary_TGAry(C, TGC, 2 * MROW * NCOL, GridSize);
 
 
@@ -162,9 +162,15 @@ int Benchmark_Gemm()
                 (double) (2 * (MROW * KIN + KIN * NCOL + MROW * NCOL) * GridSize * sizeof(FLOAT));
             MemSize /= 1024.0;
 
-#if not defined(CHECK)
-            printf("%8.1f%12ld%8.2lf%12.2lf%12.3g%12.2f%12.2f\n", MemSize, GridSize, Lreduce,
+            double bandwidth = (double) (2 * (MROW * KIN + KIN * NCOL + 2 * MROW * NCOL) *
+                                         GridSize * sizeof(FLOAT)) /
+                               (1024.0 * 1024.0 * 1024.0); // GB/s
+#if !defined(CHECK)
+            printf("%8.1f%12ld%8.2lf%12.2e%12.2g%12.2g%12.2g\n", MemSize, GridSize, Lreduce,
                    t_base, t_base / t_cblas, t_base / t_TGBlasv0, t_base / t_TGBlasv1);
+            // printf("%8.1f%12ld%8.2lf%12.2lf%12.3g%12.2f%12.2f\n", MemSize, GridSize, Lreduce,
+            //        bandwidth / t_base, bandwidth / t_cblas, bandwidth / t_TGBlasv0,
+            //        bandwidth / t_TGBlasv1);
 #endif
 
 #if defined(CHECK)

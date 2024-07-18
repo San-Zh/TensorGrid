@@ -7,20 +7,21 @@ LDLIB=
 
 
 
-CXX= clang++
-CC = clang
+CXX= g++
+CC = gcc
 
-CXX_FLAGS= -std=c++14 -O3
+CXX_FLAGS= -std=c++14 -O3 -g -G
 C_FLAGS  = -std=c99
 
-SIMDFLAG = -mavx512f -mfma -fopenmp
+# SIMDFLAG = -mavx512f -mavx512vl -mfma
+SIMDFLAG = -mavx2 -mfma 
 PRESICION= -DPRECISION=SINGLE
-TENSOR   = -DMROW=12 -DNCOL=12 -DKIN=12
-TENSOR   = -DMROW=3 -DNCOL=4 -DKIN=3
+# TENSOR   = -DMROW=12 -DNCOL=12 -DKIN=12
+TENSOR   = -DMROW=3 -DNCOL=3 -DKIN=3
 SIZE     = -DBASEGRID=16
 
 
-HAVE_BLAS = YES
+HAVE_BLAS = NO
 BLAS_PATH =/usr/local
 
 ifeq (${HAVE_BLAS},YES)
@@ -33,7 +34,11 @@ endif
 CXX_FLAGS += ${PRESICION} ${SIZE} ${TENSOR} ${SIMDFLAG} ${INCLUDE}
 C_FLAGS += ${PRESICION} ${SIZE} ${TENSOR} ${SIMDFLAG} ${INCLUDE}
 
-# targets = Benchmark_Gemv_MxN.bin Benchmark_Gemv_Check.bin
+targets = Benchmark_ComplexGemv.bin \
+	Benchmark_ComplexGemv_Check.bin \
+	Benchmark_ComplexGemm.bin \
+	Benchmark_ComplexGemm_Check.bin
+
 
 all: ${targets}
 
@@ -45,7 +50,7 @@ all: ${targets}
 
 
 %.bin: %.o
-	${CXX} ${CXX_FLAGS} ${INCLUDE}  -o $@  $< ${LDLIB} ${LINKS}
+	${CXX} ${CXX_FLAGS} ${INCLUDE}  -o -MM $@  $< ${LDLIB} ${LINKS}
 
 
 ############################

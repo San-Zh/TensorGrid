@@ -189,8 +189,8 @@ int Benchmark_Gemv()
 
             watcher.reset();
             for (size_t l = 0; l < LOOPNUM; l++) {
-                TensorGrid_complex_gemv_v1<MROW, NCOL>(TGA, TGX, TGY, GridSize);
-                // TensorGrid_complex_gemv_v2<MROW, NCOL>(TGA, TGX, TGY, GridSize);
+                // TensorGrid_complex_gemv_v1<MROW, NCOL>(TGA, TGX, TGY, GridSize);
+                TensorGrid_complex_gemv_v2<MROW, NCOL>(TGA, TGX, TGY, GridSize);
 
                 // TensorGrid_complex_gemm_v1<MROW, 1, NCOL>(TGA, TGX, TGY, GridSize);
             }

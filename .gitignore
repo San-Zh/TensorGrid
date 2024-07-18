@@ -5,3 +5,6 @@
 
 doc/html
 doc/latex
+benchmark/perf.data
+benchmark/perf.data.old
+.vscode/
